@@ -4,7 +4,7 @@ import { Play, Star, CheckCircle2, EyeOff, Heart } from 'lucide-react';
 import { useProfile } from '../../contexts/ProfileContext';
 import { useWatchProgress } from '../../contexts/WatchProgressContext';
 import { useAuth } from '../../contexts/AuthContext';
-import { getOptimizedPosterUrl, getOptimizedBackdropUrl, generatePosterSrcSet } from '../../utils/imageOptimizer';
+import { getOptimizedPosterUrl, getOptimizedBackdropUrl } from '../../utils/imageOptimizer';
 import './ContentCard.css';
 
 const ContentCard = ({
@@ -122,16 +122,16 @@ const ContentCard = ({
                 }
               }}
               src={imgError ? fallbackUrl : (imageUrl || fallbackUrl)}
-              srcSet={!imgError && aspect === 'poster' ? (generatePosterSrcSet(imageUrl) || undefined) : undefined}
-              sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 300px"
               alt={item.title || 'Contenido'}
               className={`card-media-img ${imgLoaded ? 'loaded' : 'loading'}`}
               loading={rank ? 'eager' : 'lazy'}
               decoding="async"
               onLoad={() => setImgLoaded(true)}
               onError={() => {
-                setImgError(true);
-                setImgLoaded(true);
+                if (!imgError) {
+                  setImgError(true);
+                  setImgLoaded(true);
+                }
               }}
             />
 

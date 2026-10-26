@@ -12,12 +12,7 @@ export const getOptimizedPosterUrl = (url, width = 500) => {
   // Optimize TMDB poster URLs
   if (url.includes('image.tmdb.org/t/p/')) {
     // Available TMDB poster widths: w92, w154, w185, w342, w500, w780, original
-    let targetSize = 'w500';
-    if (width <= 200) targetSize = 'w185';
-    else if (width <= 360) targetSize = 'w342';
-    else if (width <= 600) targetSize = 'w500';
-    else targetSize = 'w780';
-
+    const targetSize = width <= 360 ? 'w342' : 'w500';
     return url.replace(/\/t\/p\/(original|w\d+)\//, `/t/p/${targetSize}/`);
   }
 
@@ -29,17 +24,9 @@ export const getOptimizedBackdropUrl = (url, isTV = false) => {
 
   // Optimize TMDB backdrop URLs
   if (url.includes('image.tmdb.org/t/p/')) {
-    // On ARMv7 TV or standard screens, w1280 is sharp, HDR-capable and ~250KB (vs 12MB original!)
-    const targetSize = isTV ? 'w1280' : 'w1280';
-    return url.replace(/\/t\/p\/(original|w\d+)\//, `/t/p/${targetSize}/`);
+    // w1280 is crisp 1080p/4K HDR capable and ~200KB (vs 12MB original!)
+    return url.replace(/\/t\/p\/(original|w\d+)\//, '/t/p/w1280/');
   }
 
   return url;
-};
-
-export const generatePosterSrcSet = (url) => {
-  if (!url || !url.includes('image.tmdb.org/t/p/')) return null;
-
-  const baseUrl = url.replace(/\/t\/p\/(original|w\d+)\//, '/t/p/');
-  return `${baseUrl}w342/ 342w, ${baseUrl}w500/ 500w, ${baseUrl}w780/ 780w`;
 };
