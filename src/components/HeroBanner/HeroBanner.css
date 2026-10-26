@@ -224,22 +224,75 @@
 
 @media (max-width: 768px) {
   .hero-banner {
-    min-height: 70vh;
-    height: 75vh;
+    min-height: 60vh;
+    height: 68vh;
+    max-height: 580px;
   }
   .hero-content-wrapper {
     padding: 0 20px;
+    margin-top: 60px;
+  }
+  .hero-title {
+    font-size: clamp(1.8rem, 7vw, 2.5rem);
+    line-height: 1.15;
+  }
+  .hero-description {
+    font-size: 0.9rem;
+    -webkit-line-clamp: 2;
   }
   .hero-actions-row {
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 12px;
   }
   .hero-play-btn, .hero-info-btn {
-    padding: 10px 20px;
+    padding: 12px 22px;
     font-size: 0.95rem;
+    min-height: 44px;
+  }
+  .hero-icon-action-btn {
+    width: 44px;
+    height: 44px;
   }
   .hero-indicators {
     right: 20px;
     bottom: 16px;
   }
+}
+
+/* Smart TV 10-foot UI Optimization (Samsung AU7000 / Tizen 6.0) */
+.device-tv .hero-banner,
+.tv-mode .hero-banner {
+  min-height: 85vh;
+  height: 90vh;
+  padding: 0 20px;
+}
+
+.device-tv .hero-backdrop-img,
+.tv-mode .hero-backdrop-img {
+  transition: none !important; /* Disable continuous zoom animation to save ARMv7 CPU/GPU cycles */
+}
+
+.device-tv .hero-title,
+.tv-mode .hero-title {
+  font-size: clamp(2.8rem, 4.5vw, 4.2rem);
+  letter-spacing: -0.5px;
+}
+
+.device-tv .hero-description,
+.tv-mode .hero-description {
+  font-size: 1.25rem;
+  line-height: 1.6;
+  max-width: 850px;
+}
+
+.device-tv .hero-play-btn,
+.tv-mode .hero-play-btn {
+  padding: 18px 44px;
+  font-size: 1.25rem;
+}
+
+.device-tv .hero-info-btn,
+.tv-mode .hero-info-btn {
+  padding: 18px 36px;
+  font-size: 1.25rem;
 }

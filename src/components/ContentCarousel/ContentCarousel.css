@@ -192,3 +192,44 @@
     display: none;
   }
 }
+
+/* Smart TV (10-foot UI) Carousel Optimization (Samsung 65" AU7000) */
+.device-tv .content-carousel-section,
+.tv-mode .content-carousel-section {
+  margin: 48px 0;
+}
+
+.device-tv .carousel-header,
+.tv-mode .carousel-header {
+  padding: 0 60px;
+  margin-bottom: 20px;
+}
+
+.device-tv .carousel-title,
+.tv-mode .carousel-title {
+  font-size: 2.1rem;
+  letter-spacing: -0.4px;
+}
+
+.device-tv .carousel-subtitle,
+.tv-mode .carousel-subtitle {
+  font-size: 1.15rem;
+}
+
+.device-tv .carousel-track,
+.tv-mode .carousel-track {
+  padding: 28px 60px 52px 60px;
+  gap: 24px;
+}
+
+.device-tv .carousel-card-item,
+.tv-mode .carousel-card-item {
+  flex: 0 0 calc((100% - (24px * 4)) / 5);
+  min-width: 250px;
+}
+
+.device-tv .is-rank-carousel .carousel-card-item,
+.tv-mode .is-rank-carousel .carousel-card-item {
+  flex: 0 0 calc((100% - (24px * 2.5)) / 3.2);
+  min-width: 380px;
+}

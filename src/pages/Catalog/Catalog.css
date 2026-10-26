@@ -217,3 +217,37 @@
     gap: 14px;
   }
 }
+
+/* Smart TV 10-foot UI Optimization (Samsung AU7000 / Tizen 6.0) */
+.device-tv .catalog-header-section,
+.tv-mode .catalog-header-section {
+  padding: 130px 60px 40px 60px;
+}
+
+.device-tv .catalog-filters-sticky-bar,
+.tv-mode .catalog-filters-sticky-bar {
+  padding: 18px 60px;
+}
+
+.device-tv .catalog-grid-container,
+.tv-mode .catalog-grid-container {
+  padding: 0 60px;
+}
+
+.device-tv .catalog-cards-grid,
+.tv-mode .catalog-cards-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 28px;
+}
+
+.device-tv .category-pill,
+.tv-mode .category-pill {
+  padding: 12px 26px;
+  font-size: 1.15rem;
+}
+
+.device-tv .filter-select-native,
+.tv-mode .filter-select-native {
+  padding: 12px 20px;
+  font-size: 1.1rem;
+}

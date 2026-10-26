@@ -282,105 +282,119 @@ const Details = () => {
                 </span>
               </button>
 
-              <button
-                className={`btn-secondary action-circle-btn ${inList ? 'active' : ''}`}
-                onClick={() => requireAuth(() => toggleMyList(mediaInfo), 'Inicia sesión para añadir títulos a Mi Lista.')}
-                title={inList ? 'Quitar de mi lista' : 'Agregar a mi lista'}
-              >
-                {inList ? <Check size={20} /> : <Plus size={20} />}
-                <span>Mi Lista</span>
-              </button>
+              {/* Guarded actions for authenticated users; guests see a clean Save prompt */}
+              {user ? (
+                <>
+                  <button
+                    className={`btn-secondary action-circle-btn ${inList ? 'active' : ''}`}
+                    onClick={() => toggleMyList(mediaInfo)}
+                    title={inList ? 'Quitar de mi lista' : 'Agregar a mi lista'}
+                  >
+                    {inList ? <Check size={20} /> : <Plus size={20} />}
+                    <span>Mi Lista</span>
+                  </button>
 
-              <button
-                className={`btn-secondary action-circle-btn ${isFav ? 'active-fav' : ''}`}
-                onClick={() => requireAuth(() => toggleFavorite(mediaInfo), 'Inicia sesión para guardar títulos en tus Favoritos.')}
-                title={isFav ? 'Quitar de favoritos' : 'Marcar favorito'}
-              >
-                <Heart size={20} fill={isFav ? 'currentColor' : 'none'} />
-                <span>Favoritos</span>
-              </button>
+                  <button
+                    className={`btn-secondary action-circle-btn ${isFav ? 'active-fav' : ''}`}
+                    onClick={() => toggleFavorite(mediaInfo)}
+                    title={isFav ? 'Quitar de favoritos' : 'Marcar favorito'}
+                  >
+                    <Heart size={20} fill={isFav ? 'currentColor' : 'none'} />
+                    <span>Favoritos</span>
+                  </button>
 
-              {/* Custom Lists Selector Trigger */}
-              <div className="custom-lists-action-wrapper" ref={customListsMenuRef}>
-                <button
-                  className={`btn-secondary action-circle-btn ${isInAnyCustomList ? 'active' : ''}`}
-                  onClick={() => requireAuth(() => setShowCustomListsMenu(prev => !prev), 'Inicia sesión para organizar títulos en tus listas personalizadas.')}
-                  title="Agregar o quitar de listas personalizadas"
-                >
-                  {isInAnyCustomList ? <FolderCheck size={19} /> : <FolderPlus size={19} />}
-                  <span>Listas</span>
-                </button>
+                  {/* Custom Lists Selector Trigger */}
+                  <div className="custom-lists-action-wrapper" ref={customListsMenuRef}>
+                    <button
+                      className={`btn-secondary action-circle-btn ${isInAnyCustomList ? 'active' : ''}`}
+                      onClick={() => setShowCustomListsMenu(prev => !prev)}
+                      title="Agregar o quitar de listas personalizadas"
+                    >
+                      {isInAnyCustomList ? <FolderCheck size={19} /> : <FolderPlus size={19} />}
+                      <span>Listas</span>
+                    </button>
 
-                {showCustomListsMenu && (
-                  <div className="details-custom-lists-popover glass-panel fade-in">
-                    <h5 className="custom-popover-title">Mis Listas Personalizadas</h5>
-                    <div className="custom-popover-items">
-                      {customLists.map(list => {
-                        const inThisList = isInCustomList(list.id, id);
-                        return (
+                    {showCustomListsMenu && (
+                      <div className="details-custom-lists-popover glass-panel fade-in">
+                        <h5 className="custom-popover-title">Mis Listas Personalizadas</h5>
+                        <div className="custom-popover-items">
+                          {customLists.map(list => {
+                            const inThisList = isInCustomList(list.id, id);
+                            return (
+                              <button
+                                key={list.id}
+                                className={`custom-popover-list-item ${inThisList ? 'active' : ''}`}
+                                onClick={() => {
+                                  if (inThisList) {
+                                    removeItemFromCustomList(list.id, id);
+                                  } else {
+                                    addItemToCustomList(list.id, mediaInfo);
+                                  }
+                                }}
+                              >
+                                <span className="popover-checkbox">
+                                  {inThisList && <Check size={14} color="#10b981" />}
+                                </span>
+                                <span className="popover-list-name">{list.name}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+
+                        {!showQuickCreate ? (
                           <button
-                            key={list.id}
-                            className={`custom-popover-list-item ${inThisList ? 'active' : ''}`}
-                            onClick={() => {
-                              if (inThisList) {
-                                removeItemFromCustomList(list.id, id);
-                              } else {
-                                addItemToCustomList(list.id, mediaInfo);
-                              }
-                            }}
+                            className="btn-quick-new-list"
+                            onClick={() => setShowQuickCreate(true)}
                           >
-                            <span className="popover-checkbox">
-                              {inThisList && <Check size={14} color="#10b981" />}
-                            </span>
-                            <span className="popover-list-name">{list.name}</span>
+                            <Plus size={14} />
+                            <span>Nueva lista</span>
                           </button>
-                        );
-                      })}
-                    </div>
-
-                    {!showQuickCreate ? (
-                      <button
-                        className="btn-quick-new-list"
-                        onClick={() => setShowQuickCreate(true)}
-                      >
-                        <Plus size={14} />
-                        <span>Nueva lista</span>
-                      </button>
-                    ) : (
-                      <div className="quick-create-input-row">
-                        <input
-                          type="text"
-                          placeholder="Nombre de lista"
-                          value={quickListName}
-                          onChange={(e) => setQuickListName(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter' && quickListName.trim()) {
-                              const created = createCustomList({ name: quickListName.trim() });
-                              if (created) addItemToCustomList(created.id, mediaInfo);
-                              setQuickListName('');
-                              setShowQuickCreate(false);
-                            }
-                          }}
-                          autoFocus
-                        />
-                        <button
-                          className="btn-quick-create-confirm"
-                          onClick={() => {
-                            if (quickListName.trim()) {
-                              const created = createCustomList({ name: quickListName.trim() });
-                              if (created) addItemToCustomList(created.id, mediaInfo);
-                              setQuickListName('');
-                              setShowQuickCreate(false);
-                            }
-                          }}
-                        >
-                          Crear
-                        </button>
+                        ) : (
+                          <div className="quick-create-input-row">
+                            <input
+                              type="text"
+                              placeholder="Nombre de lista"
+                              value={quickListName}
+                              onChange={(e) => setQuickListName(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' && quickListName.trim()) {
+                                  const created = createCustomList({ name: quickListName.trim() });
+                                  if (created) addItemToCustomList(created.id, mediaInfo);
+                                  setQuickListName('');
+                                  setShowQuickCreate(false);
+                                }
+                              }}
+                              autoFocus
+                            />
+                            <button
+                              className="btn-quick-create-confirm"
+                              onClick={() => {
+                                if (quickListName.trim()) {
+                                  const created = createCustomList({ name: quickListName.trim() });
+                                  if (created) addItemToCustomList(created.id, mediaInfo);
+                                  setQuickListName('');
+                                  setShowQuickCreate(false);
+                                }
+                              }}
+                            >
+                              Crear
+                            </button>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
-                )}
-              </div>
+                </>
+              ) : (
+                <button
+                  className="btn-secondary action-circle-btn guest-lock-action"
+                  onClick={() => requireAuth(null, 'Inicia sesión para guardar este título en tus Favoritos o Listas.')}
+                  title="Inicia sesión para guardar"
+                >
+                  <Plus size={18} />
+                  <span>Guardar</span>
+                </button>
+              )}
 
               <button
                 className="btn-secondary action-circle-btn share"
@@ -391,20 +405,23 @@ const Details = () => {
                 <span>Compartir</span>
               </button>
 
-              <button
-                className={`btn-secondary action-circle-btn hide-rec-btn ${isTitleHidden(id) ? 'active-hidden' : ''}`}
-                onClick={() => {
-                  if (isTitleHidden(id)) {
-                    unhideTitle(id);
-                  } else {
-                    hideTitle(mediaInfo);
-                  }
-                }}
-                title={isTitleHidden(id) ? 'Mostrar de nuevo en recomendaciones' : 'Ocultar de recomendaciones'}
-              >
-                {isTitleHidden(id) ? <Eye size={19} /> : <EyeOff size={19} />}
-                <span>{isTitleHidden(id) ? 'Oculto' : 'Ocultar'}</span>
-              </button>
+              {/* Hide title recommendation - STRICTLY AUTHENTICATED */}
+              {user && (
+                <button
+                  className={`btn-secondary action-circle-btn hide-rec-btn ${isTitleHidden(id) ? 'active-hidden' : ''}`}
+                  onClick={() => {
+                    if (isTitleHidden(id)) {
+                      unhideTitle(id);
+                    } else {
+                      hideTitle(mediaInfo);
+                    }
+                  }}
+                  title={isTitleHidden(id) ? 'Mostrar de nuevo en recomendaciones' : 'Ocultar de recomendaciones'}
+                >
+                  {isTitleHidden(id) ? <Eye size={19} /> : <EyeOff size={19} />}
+                  <span>{isTitleHidden(id) ? 'Oculto' : 'Ocultar'}</span>
+                </button>
+              )}
             </div>
           </div>
         </div>

@@ -4,6 +4,7 @@ import { Play, Star, CheckCircle2, EyeOff, Heart } from 'lucide-react';
 import { useProfile } from '../../contexts/ProfileContext';
 import { useWatchProgress } from '../../contexts/WatchProgressContext';
 import { useAuth } from '../../contexts/AuthContext';
+import { getOptimizedPosterUrl, getOptimizedBackdropUrl, generatePosterSrcSet } from '../../utils/imageOptimizer';
 import './ContentCard.css';
 
 const ContentCard = ({
@@ -15,7 +16,7 @@ const ContentCard = ({
   const navigate = useNavigate();
   const { hideTitle, isTitleHidden } = useProfile();
   const { isFavorite, toggleFavorite } = useWatchProgress();
-  const { requireAuth } = useAuth();
+  const { user, requireAuth } = useAuth();
 
   const [imgLoaded, setImgLoaded] = useState(false);
   const [imgError, setImgError] = useState(false);
@@ -25,12 +26,16 @@ const ContentCard = ({
 
   const isFav = item?.id ? isFavorite(item.id) : false;
 
-  // Poster or backdrop resolution
-  const imageUrl = aspect === 'backdrop'
+  // Optimized poster or backdrop resolution with WPO WebP
+  const rawUrl = aspect === 'backdrop'
     ? (item?.backdrop || item?.banner || item?.image)
     : (item?.image || item?.backdrop || item?.banner);
 
-  const fallbackUrl = 'data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22300%22%20height%3D%22450%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20fill%3D%22%230f1424%22%2F%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20fill%3D%22%23475569%22%20font-family%3D%22sans-serif%22%20font-size%3D%2216%22%20font-weight%3D%22bold%22%20text-anchor%3D%22middle%22%3EStreamZone%3C%2Ftext%3E%3C%2Fsvg%3E';
+  const imageUrl = aspect === 'backdrop'
+    ? getOptimizedBackdropUrl(rawUrl)
+    : getOptimizedPosterUrl(rawUrl, 500);
+
+  const fallbackUrl = 'data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22300%22%20height%3D%22450%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20fill%3D%22%230f1424%22%2F%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20fill%3D%22%23475569%22%20font-family%3D%22sans-serif%22%20font-size%3D%2216%22%20font-weight%3D%22bold%22%20text-anchor%3D%22middle%22%3EStreamzona%3C%2Ftext%3E%3C%2Fsvg%3E';
 
   // Safety fallback for Smart TVs (Roku / Samsung Tizen) where onLoad in horizontal carousels can be delayed or swallowed
   useEffect(() => {
@@ -117,6 +122,8 @@ const ContentCard = ({
                 }
               }}
               src={imgError ? fallbackUrl : (imageUrl || fallbackUrl)}
+              srcSet={!imgError && aspect === 'poster' ? (generatePosterSrcSet(imageUrl) || undefined) : undefined}
+              sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 300px"
               alt={item.title || 'Contenido'}
               className={`card-media-img ${imgLoaded ? 'loaded' : 'loading'}`}
               loading={rank ? 'eager' : 'lazy'}
@@ -144,8 +151,8 @@ const ContentCard = ({
               )}
             </div>
 
-            {/* Card Action Buttons: Favorites (Heart) & Hide (EyeOff) */}
-            {!showHideConfirm && (
+            {/* Card Action Buttons: Favorites (Heart) & Hide (EyeOff) - STRICTLY AUTHENTICATED */}
+            {user && !showHideConfirm && (
               <div className="card-top-actions">
                 <button
                   className={`card-action-btn fav-btn ${isFav ? 'active' : ''} ${isHovered ? 'visible' : ''}`}

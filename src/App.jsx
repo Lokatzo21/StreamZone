@@ -7,6 +7,7 @@ import ProfileModal from './components/ProfileModal/ProfileModal';
 import HiddenTitlesModal from './components/HiddenTitlesModal/HiddenTitlesModal';
 import AuthRequiredModal from './components/AuthRequiredModal/AuthRequiredModal';
 import ScrollToTop from './components/ScrollToTop/ScrollToTop';
+import { useDeviceDetect } from './hooks/useDeviceDetect';
 
 // Code Splitting via React.lazy for instant initial page loading & WPO
 const Home = lazy(() => import('./pages/Home/Home'));
@@ -31,6 +32,7 @@ const RouteLoadingFallback = () => (
 const AppContent = () => {
   const location = useLocation();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const { isSmartTV, isMobile, isPocoM6Pro } = useDeviceDetect();
 
   // Check if current page is theater watch mode
   const isWatchPage = location.pathname.startsWith('/watch/');
@@ -49,7 +51,7 @@ const AppContent = () => {
   }, []);
 
   return (
-    <div className="app-layout">
+    <div className={`app-layout ${isSmartTV ? 'tv-mode' : ''} ${isMobile ? 'mobile-mode' : ''} ${isPocoM6Pro ? 'poco-mode' : ''}`}>
       {/* Auto-scroll to top on every navigation */}
       <ScrollToTop />
 

@@ -54,8 +54,8 @@ export const ProfileProvider = ({ children }) => {
   const { user } = useAuth();
 
   // Strictly scope profile data to authenticated user.id; guests get clean in-memory defaults
-  const profilesKey = user ? `streamzone_${user.id}_profiles` : null;
-  const activeProfileKey = user ? `streamzone_${user.id}_active_profile_id` : null;
+  const profilesKey = user ? `streamzona_${user.id}_profiles` : null;
+  const activeProfileKey = user ? `streamzona_${user.id}_active_profile_id` : null;
 
   const [profiles, setProfiles] = useLocalStorage(profilesKey, INITIAL_PROFILES);
   const [activeProfileId, setActiveProfileId] = useLocalStorage(activeProfileKey, 'profile_1');
@@ -80,7 +80,7 @@ export const ProfileProvider = ({ children }) => {
   }, [user]);
 
   // Hidden titles stored per profile in localStorage
-  const hiddenTitlesKey = user ? `streamzone_${user.id}_hidden_titles_${activeProfileId || 'profile_1'}` : null;
+  const hiddenTitlesKey = user ? `streamzona_${user.id}_hidden_titles_${activeProfileId || 'profile_1'}` : null;
   const [hiddenTitles, setHiddenTitles] = useLocalStorage(hiddenTitlesKey, []);
 
   const hideTitle = (item) => {

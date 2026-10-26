@@ -59,9 +59,10 @@ export const AuthProvider = ({ children }) => {
             } catch {}
           }
           const strForStorage = JSON.stringify(valToStore);
-          const scopedKey = row.key.startsWith(`streamzone_${userId}_`) 
-            ? row.key 
-            : `streamzone_${userId}_${row.key.replace(/^streamzone_/, '')}`;
+          const rawK = row.key.replace(/^streamzone_/, 'streamzona_');
+          const scopedKey = rawK.startsWith(`streamzona_${userId}_`) 
+            ? rawK 
+            : `streamzona_${userId}_${rawK.replace(/^streamzona_/, '')}`;
           window.localStorage.setItem(scopedKey, strForStorage);
           window.dispatchEvent(new CustomEvent('local-storage-sync', {
             detail: { key: scopedKey, newValue: valToStore }
@@ -76,6 +77,19 @@ export const AuthProvider = ({ children }) => {
   };
 
   useEffect(() => {
+    // Auto-migrate legacy streamzone_* localStorage keys to streamzona_*
+    try {
+      for (let i = 0; i < window.localStorage.length; i++) {
+        const k = window.localStorage.key(i);
+        if (k && k.startsWith('streamzone_')) {
+          const newK = k.replace(/^streamzone_/, 'streamzona_');
+          const val = window.localStorage.getItem(k);
+          window.localStorage.setItem(newK, val);
+          window.localStorage.removeItem(k);
+        }
+      }
+    } catch {}
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         supabase.auth.getUser().then(({ data: { user: freshUser } }) => {
@@ -85,12 +99,12 @@ export const AuthProvider = ({ children }) => {
       } else {
         setUser(null);
         setLoading(false);
-        // Clean any residual unscoped streamzone keys for guests
+        // Clean any residual unscoped streamzona/streamzone keys for guests
         try {
           const keysToRemove = [];
           for (let i = 0; i < window.localStorage.length; i++) {
             const k = window.localStorage.key(i);
-            if (k && k.startsWith('streamzone_') && !k.match(/streamzone_[0-9a-fA-F-]{36}_/)) {
+            if (k && (k.startsWith('streamzona_') || k.startsWith('streamzone_')) && !k.match(/streamzona_[0-9a-fA-F-]{36}_/)) {
               keysToRemove.push(k);
             }
           }
@@ -125,9 +139,10 @@ export const AuthProvider = ({ children }) => {
                   }
                 } catch {}
               }
-              const scopedKey = row.key.startsWith(`streamzone_${userId}_`) 
-                ? row.key 
-                : `streamzone_${userId}_${row.key.replace(/^streamzone_/, '')}`;
+              const rawK = row.key.replace(/^streamzone_/, 'streamzona_');
+              const scopedKey = rawK.startsWith(`streamzona_${userId}_`) 
+                ? rawK 
+                : `streamzona_${userId}_${rawK.replace(/^streamzona_/, '')}`;
               window.localStorage.setItem(scopedKey, JSON.stringify(valToStore));
               window.dispatchEvent(new CustomEvent('local-storage-sync', {
                 detail: { key: scopedKey, newValue: valToStore }
@@ -146,12 +161,12 @@ export const AuthProvider = ({ children }) => {
         setupSyncChannel(currentUser.id);
       } else {
         if (syncChannel) supabase.removeChannel(syncChannel);
-        // Clear all streamzone keys from localStorage on logout
+        // Clear all streamzona/streamzone keys from localStorage on logout
         try {
           const keysToRemove = [];
           for (let i = 0; i < window.localStorage.length; i++) {
             const k = window.localStorage.key(i);
-            if (k && k.startsWith('streamzone_')) {
+            if (k && (k.startsWith('streamzona_') || k.startsWith('streamzone_'))) {
               keysToRemove.push(k);
             }
           }
@@ -194,7 +209,7 @@ export const AuthProvider = ({ children }) => {
         const keysToRemove = [];
         for (let i = 0; i < window.localStorage.length; i++) {
           const k = window.localStorage.key(i);
-          if (k && (k.startsWith('streamzone_') || k.startsWith('az_'))) {
+          if (k && (k.startsWith('streamzona_') || k.startsWith('streamzone_') || k.startsWith('az_'))) {
             keysToRemove.push(k);
           }
         }

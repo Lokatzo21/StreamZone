@@ -38,7 +38,7 @@ const fetchWithDelay = async (url) => {
 export const mapAnimeData = (item) => {
   const hasBackdrop = Boolean(item.backdrop_path);
   const backdropUrl = hasBackdrop 
-    ? `https://image.tmdb.org/t/p/original${item.backdrop_path}` 
+    ? `https://image.tmdb.org/t/p/w1280${item.backdrop_path}` 
     : null;
   const posterUrl = item.poster_path 
     ? `https://image.tmdb.org/t/p/w500${item.poster_path}` 

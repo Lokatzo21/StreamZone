@@ -8,7 +8,7 @@ const Footer = () => {
       <div className="footer-container">
         <div className="footer-top-row">
           <div className="footer-brand">
-            <span className="footer-logo">STREAM<span className="accent">ZONE</span></span>
+            <span className="footer-logo">STREAM<span className="accent">ZONA</span></span>
             <p className="footer-tagline">
               La experiencia definitiva de streaming en alta definición para películas, series y anime.
             </p>
@@ -30,7 +30,7 @@ const Footer = () => {
 
         <div className="footer-bottom-row">
           <p className="footer-copyright">
-            © {new Date().getFullYear()} StreamZone. Diseñado con arquitectura de alto rendimiento.
+            © {new Date().getFullYear()} Streamzona. Diseñado con arquitectura de alto rendimiento.
           </p>
         </div>
       </div>

@@ -145,6 +145,55 @@
 
 @media (max-width: 480px) {
   .brand-hubs-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
   }
+  .brand-hub-card {
+    min-height: 72px;
+    padding: 14px 12px;
+  }
+  .hub-icon-wrap {
+    width: 36px;
+    height: 36px;
+  }
+  .hub-title {
+    font-size: 0.95rem;
+  }
+  .hub-subtitle {
+    font-size: 0.72rem;
+  }
+}
+
+/* Smart TV 10-foot UI Focus for Brand Hubs */
+.device-tv .brand-hubs-section,
+.tv-mode .brand-hubs-section {
+  padding: 0 60px;
+  margin: 40px auto 52px auto;
+}
+
+.device-tv .brand-hub-card,
+.tv-mode .brand-hub-card {
+  min-height: 100px;
+  padding: 24px 22px;
+}
+
+.device-tv .hub-title,
+.tv-mode .hub-title {
+  font-size: 1.35rem;
+}
+
+.device-tv .hub-subtitle,
+.tv-mode .hub-subtitle {
+  font-size: 0.95rem;
+}
+
+.device-tv .brand-hub-card:focus,
+.device-tv .brand-hub-card:focus-visible,
+.tv-mode .brand-hub-card:focus,
+.tv-mode .brand-hub-card:focus-visible {
+  outline: 4px solid var(--accent-primary) !important;
+  outline-offset: 4px !important;
+  transform: scale(1.05) translateZ(0) !important;
+  box-shadow: 0 0 35px var(--hub-glow), 0 16px 36px rgba(0, 0, 0, 0.8) !important;
+  z-index: 50 !important;
 }

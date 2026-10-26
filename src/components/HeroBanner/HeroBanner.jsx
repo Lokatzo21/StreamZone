@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Play, Info, Plus, Check, Star, Volume2, VolumeX, Sparkles } from 'lucide-react';
+import { Play, Info, Plus, Check, Star, Sparkles } from 'lucide-react';
 import { useWatchProgress } from '../../contexts/WatchProgressContext';
+import { useAuth } from '../../contexts/AuthContext';
+import { getOptimizedBackdropUrl } from '../../utils/imageOptimizer';
 import './HeroBanner.css';
 
 const HeroBanner = ({ featuredItems = [] }) => {
   const navigate = useNavigate();
   const { isInMyList, toggleMyList } = useWatchProgress();
+  const { user } = useAuth();
   const [currentIndex, setCurrentIndex] = useState(0);
 
   // Auto-cycle through featured items every 9 seconds if not interacted
@@ -29,7 +32,8 @@ const HeroBanner = ({ featuredItems = [] }) => {
   const current = featuredItems[currentIndex] || featuredItems[0];
   const inList = isInMyList(current?.id);
 
-  const backdropUrl = current?.backdrop || current?.banner || current?.image;
+  const rawBackdrop = current?.backdrop || current?.banner || current?.image;
+  const backdropUrl = getOptimizedBackdropUrl(rawBackdrop);
 
   return (
     <section className="hero-banner">
@@ -40,6 +44,8 @@ const HeroBanner = ({ featuredItems = [] }) => {
           src={backdropUrl}
           alt={current?.title}
           className="hero-backdrop-img fade-in"
+          loading="eager"
+          decoding="async"
         />
         <div className="hero-vignette-overlay" />
         <div className="hero-bottom-gradient" />
@@ -96,14 +102,17 @@ const HeroBanner = ({ featuredItems = [] }) => {
               <span>Más Información</span>
             </button>
 
-            <button
-              className={`hero-icon-action-btn ${inList ? 'in-list' : ''}`}
-              onClick={() => toggleMyList(current)}
-              aria-label={inList ? 'Quitar de mi lista' : 'Agregar a mi lista'}
-              title={inList ? 'Quitar de mi lista' : 'Agregar a mi lista'}
-            >
-              {inList ? <Check size={20} /> : <Plus size={20} />}
-            </button>
+            {/* Add to list - Only for logged-in users */}
+            {user && (
+              <button
+                className={`hero-icon-action-btn ${inList ? 'in-list' : ''}`}
+                onClick={() => toggleMyList(current)}
+                aria-label={inList ? 'Quitar de mi lista' : 'Agregar a mi lista'}
+                title={inList ? 'Quitar de mi lista' : 'Agregar a mi lista'}
+              >
+                {inList ? <Check size={20} /> : <Plus size={20} />}
+              </button>
+            )}
           </div>
         </div>
       </div>

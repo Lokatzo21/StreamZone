@@ -20,10 +20,10 @@ export const WatchProgressProvider = ({ children }) => {
   const userId = user?.id || null;
 
   // Scoped storage keys strictly bound to authenticated user ID
-  const progressKey = userId ? `streamzone_${userId}_progress_${activeProfileId || 'profile_1'}` : null;
-  const myListKey = userId ? `streamzone_${userId}_mylist_${activeProfileId || 'profile_1'}` : null;
-  const favoritesKey = userId ? `streamzone_${userId}_favorites_${activeProfileId || 'profile_1'}` : null;
-  const customListsKey = userId ? `streamzone_${userId}_custom_lists_${activeProfileId || 'profile_1'}` : null;
+  const progressKey = userId ? `streamzona_${userId}_progress_${activeProfileId || 'profile_1'}` : null;
+  const myListKey = userId ? `streamzona_${userId}_mylist_${activeProfileId || 'profile_1'}` : null;
+  const favoritesKey = userId ? `streamzona_${userId}_favorites_${activeProfileId || 'profile_1'}` : null;
+  const customListsKey = userId ? `streamzona_${userId}_custom_lists_${activeProfileId || 'profile_1'}` : null;
 
   const [rawWatchHistory, setWatchHistory] = useLocalStorage(progressKey, {});
   const [rawMyList, setMyList] = useLocalStorage(myListKey, []);

@@ -73,7 +73,7 @@ const Navbar = ({ onOpenSearch }) => {
         <div className="navbar-left">
           <Link to="/" className="navbar-logo">
             <span className="logo-stream">STREAM</span>
-            <span className="logo-zone">ZONE</span>
+            <span className="logo-zona">ZONA</span>
           </Link>
 
           <nav className="navbar-links-desktop">

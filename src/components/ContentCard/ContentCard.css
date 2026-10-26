@@ -467,3 +467,73 @@
   border-radius: 14px;
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.8);
 }
+
+/* Smart TV (10-foot UI) Focus & ARMv7 Performance */
+.device-tv .content-card,
+.tv-mode .content-card {
+  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.18s ease-out;
+  transform: translateZ(0);
+}
+
+.device-tv .content-card:focus,
+.device-tv .content-card:focus-visible,
+.tv-mode .content-card:focus,
+.tv-mode .content-card:focus-visible {
+  outline: none;
+  z-index: 100;
+  transform: scale(1.08) translateZ(0);
+}
+
+.device-tv .content-card:focus .card-media-wrapper,
+.device-tv .content-card:focus-visible .card-media-wrapper,
+.tv-mode .content-card:focus .card-media-wrapper,
+.tv-mode .content-card:focus-visible .card-media-wrapper {
+  outline: 4px solid var(--accent-primary) !important;
+  outline-offset: 4px;
+  border-color: #fff !important;
+  box-shadow: 0 0 35px rgba(255, 107, 0, 0.85), 0 20px 40px rgba(0, 0, 0, 0.9) !important;
+}
+
+.device-tv .content-card:focus .card-hover-play-badge,
+.tv-mode .content-card:focus .card-hover-play-badge {
+  opacity: 1;
+}
+
+/* Lighten rendering on ARMv7 32-bit GPU (Samsung AU7000) */
+.tizen-au7000 .card-media-wrapper {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.tizen-au7000 .content-card:hover .card-media-wrapper {
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.7);
+}
+
+/* Mobile & POCO M6 Pro 5G Sizing & 120Hz Fluid Scrolling */
+@media (max-width: 768px) {
+  .card-bottom-label {
+    margin-top: 8px;
+  }
+  .card-title-text {
+    font-size: clamp(0.85rem, 3.2vw, 0.98rem);
+    -webkit-line-clamp: 2;
+    line-height: 1.25;
+  }
+  .card-sub-info-row {
+    font-size: 0.78rem;
+  }
+  .card-rank-badge-box {
+    width: 55px;
+    min-width: 55px;
+  }
+  .card-rank-badge-box.double-digit {
+    width: 90px;
+    min-width: 90px;
+  }
+  .card-rank-number {
+    font-size: 4.2rem;
+  }
+  .card-rank-number.double-digit {
+    font-size: 3.8rem;
+    letter-spacing: -10px;
+  }
+}

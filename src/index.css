@@ -222,3 +222,91 @@ a {
   color: var(--text-secondary);
   letter-spacing: 0.5px;
 }
+
+/* ==============================================================
+   SMART TV 10-FOOT UI (SAMSUNG CRYSTAL UHD AU7000 / TIZEN OS 6.0)
+   ============================================================== */
+.device-tv,
+.tv-mode {
+  --tv-overscan-pad: 52px;
+  font-size: 17px;
+}
+
+.device-tv .app-layout,
+.tv-mode {
+  padding-left: var(--tv-overscan-pad);
+  padding-right: var(--tv-overscan-pad);
+  box-sizing: border-box;
+}
+
+.device-tv .navbar-header,
+.tv-mode .navbar-header {
+  padding-left: var(--tv-overscan-pad);
+  padding-right: var(--tv-overscan-pad);
+}
+
+/* High-Contrast D-Pad Focus Outline for Remote Control Navigation */
+.device-tv :focus-visible,
+.tv-mode :focus-visible,
+.device-tv button:focus,
+.tv-mode button:focus,
+.device-tv a:focus,
+.tv-mode a:focus {
+  outline: 4px solid var(--accent-primary) !important;
+  outline-offset: 4px !important;
+  transform: scale(1.05) translateZ(0) !important;
+  box-shadow: 0 0 35px rgba(255, 107, 0, 0.85) !important;
+  z-index: 99 !important;
+  transition: transform 0.16s ease-out, box-shadow 0.16s ease-out !important;
+}
+
+/* Eliminate GPU Bottlenecks on ARMv7 32-bit (Samsung AU7000 Mali GPU) */
+.tizen-au7000 *,
+.device-tv * {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.tizen-au7000 .glass-panel,
+.device-tv .glass-panel {
+  background: rgba(14, 18, 28, 0.96) !important;
+  border-color: rgba(255, 255, 255, 0.14) !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.75) !important;
+}
+
+/* ==============================================================
+   MOBILE & POCO M6 PRO 5G (FHD+ 120Hz) FLUID SCALING
+   ============================================================== */
+@media (max-width: 768px) {
+  body {
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+  }
+
+  .app-layout {
+    overflow-x: hidden;
+  }
+
+  /* Thumb-friendly tap targets */
+  button, a, input, select {
+    min-height: 44px;
+  }
+}
+
+/* Specific calibration for narrow high-DPI displays (POCO M6 Pro 5G) */
+.device-poco h1 {
+  font-size: clamp(1.8rem, 6.5vw, 2.5rem);
+}
+
+.device-poco h2 {
+  font-size: clamp(1.4rem, 5vw, 1.8rem);
+}
+
+@media (max-width: 480px) {
+  h1 {
+    font-size: clamp(1.8rem, 6.5vw, 2.5rem);
+  }
+  h2 {
+    font-size: clamp(1.4rem, 5vw, 1.8rem);
+  }
+}
