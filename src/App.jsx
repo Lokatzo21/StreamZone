@@ -5,6 +5,7 @@ import Footer from './components/Footer/Footer';
 import SearchModal from './components/SearchModal/SearchModal';
 import ProfileModal from './components/ProfileModal/ProfileModal';
 import HiddenTitlesModal from './components/HiddenTitlesModal/HiddenTitlesModal';
+import AuthRequiredModal from './components/AuthRequiredModal/AuthRequiredModal';
 import ScrollToTop from './components/ScrollToTop/ScrollToTop';
 
 // Code Splitting via React.lazy for instant initial page loading & WPO
@@ -59,6 +60,7 @@ const AppContent = () => {
       <SearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
       <ProfileModal />
       <HiddenTitlesModal />
+      <AuthRequiredModal />
 
       {/* Application Routes with Code Splitting Suspense */}
       <Suspense fallback={<RouteLoadingFallback />}>

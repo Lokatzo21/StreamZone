@@ -88,6 +88,73 @@
   margin-left: 4px;
 }
 
+/* Guest Lock Card for unauthenticated users */
+.mylist-guest-lock-card {
+  max-width: 640px;
+  margin: 60px auto 100px auto;
+  padding: 48px 36px;
+  border-radius: 20px;
+  text-align: center;
+  background: rgba(18, 18, 26, 0.75);
+  border: 1px solid rgba(255, 107, 0, 0.25);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5), 0 0 40px rgba(255, 107, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.guest-lock-icon-wrap {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: rgba(255, 107, 0, 0.12);
+  border: 1px solid rgba(255, 107, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-primary);
+  margin-bottom: 24px;
+  box-shadow: 0 0 30px rgba(255, 107, 0, 0.25);
+}
+
+.guest-lock-title {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 12px;
+  letter-spacing: -0.3px;
+}
+
+.guest-lock-desc {
+  font-size: 1rem;
+  color: #94a3b8;
+  line-height: 1.6;
+  max-width: 480px;
+  margin-bottom: 32px;
+}
+
+.guest-lock-actions {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.guest-lock-btn {
+  padding: 13px 28px;
+  font-size: 1rem;
+  font-weight: 700;
+  border-radius: 12px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 170px;
+  transition: all var(--transition-fast);
+}
+
 .guest-alert-btn {
   flex-shrink: 0;
   padding: 8px 18px;

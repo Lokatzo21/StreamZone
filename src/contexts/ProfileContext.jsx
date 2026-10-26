@@ -52,13 +52,19 @@ const INITIAL_PROFILES = [
 
 export const ProfileProvider = ({ children }) => {
   const { user } = useAuth();
-  const [profiles, setProfiles] = useLocalStorage('streamzone_profiles_v1', INITIAL_PROFILES);
-  const [activeProfileId, setActiveProfileId] = useLocalStorage('streamzone_active_profile_id', 'profile_1');
+
+  // Strictly scope profile data to authenticated user.id; guests get clean in-memory defaults
+  const profilesKey = user ? `streamzone_${user.id}_profiles` : null;
+  const activeProfileKey = user ? `streamzone_${user.id}_active_profile_id` : null;
+
+  const [profiles, setProfiles] = useLocalStorage(profilesKey, INITIAL_PROFILES);
+  const [activeProfileId, setActiveProfileId] = useLocalStorage(activeProfileKey, 'profile_1');
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isHiddenModalOpen, setIsHiddenModalOpen] = useState(false);
 
   // Auto-migrate any previously cached 'Manuel' profiles to 'Principal' or the current logged user
   useEffect(() => {
+    if (!user) return;
     setProfiles(prev => {
       let changed = false;
       const updated = prev.map((p, idx) => {
@@ -74,7 +80,8 @@ export const ProfileProvider = ({ children }) => {
   }, [user]);
 
   // Hidden titles stored per profile in localStorage
-  const [hiddenTitles, setHiddenTitles] = useLocalStorage(`streamzone_hidden_titles_${activeProfileId || 'profile_1'}`, []);
+  const hiddenTitlesKey = user ? `streamzone_${user.id}_hidden_titles_${activeProfileId || 'profile_1'}` : null;
+  const [hiddenTitles, setHiddenTitles] = useLocalStorage(hiddenTitlesKey, []);
 
   const hideTitle = (item) => {
     if (!item || !item.id) return;

@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useMemo } from 'react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { useProfile } from './ProfileContext';
+import { useAuth } from './AuthContext';
 
 const WatchProgressContext = createContext();
 
@@ -13,29 +14,30 @@ export const useWatchProgress = () => {
 };
 
 export const WatchProgressProvider = ({ children }) => {
+  const { user } = useAuth();
   const { activeProfileId } = useProfile();
 
-  // Scoped storage keys based on profile ID
-  const progressKey = `streamzone_progress_${activeProfileId || 'profile_1'}`;
-  const myListKey = `streamzone_mylist_${activeProfileId || 'profile_1'}`;
-  const favoritesKey = `streamzone_favorites_${activeProfileId || 'profile_1'}`;
-  const customListsKey = `streamzone_custom_lists_${activeProfileId || 'profile_1'}`;
+  const userId = user?.id || null;
 
-  const [watchHistory, setWatchHistory] = useLocalStorage(progressKey, {});
-  const [myList, setMyList] = useLocalStorage(myListKey, []);
-  const [favorites, setFavorites] = useLocalStorage(favoritesKey, []);
-  const [customLists, setCustomLists] = useLocalStorage(customListsKey, [
-    {
-      id: 'list_default_1',
-      name: 'Ver en Fin de Semana',
-      description: 'Películas y series reservadas para descansar.',
-      createdAt: new Date().toISOString(),
-      items: []
-    }
-  ]);
+  // Scoped storage keys strictly bound to authenticated user ID
+  const progressKey = userId ? `streamzone_${userId}_progress_${activeProfileId || 'profile_1'}` : null;
+  const myListKey = userId ? `streamzone_${userId}_mylist_${activeProfileId || 'profile_1'}` : null;
+  const favoritesKey = userId ? `streamzone_${userId}_favorites_${activeProfileId || 'profile_1'}` : null;
+  const customListsKey = userId ? `streamzone_${userId}_custom_lists_${activeProfileId || 'profile_1'}` : null;
+
+  const [rawWatchHistory, setWatchHistory] = useLocalStorage(progressKey, {});
+  const [rawMyList, setMyList] = useLocalStorage(myListKey, []);
+  const [rawFavorites, setFavorites] = useLocalStorage(favoritesKey, []);
+  const [rawCustomLists, setCustomLists] = useLocalStorage(customListsKey, []);
+
+  // Strict isolation: unauthenticated guests always receive clean, empty state
+  const watchHistory = user ? (rawWatchHistory || {}) : {};
+  const myList = user ? (rawMyList || []) : [];
+  const favorites = user ? (rawFavorites || []) : [];
+  const customLists = user ? (rawCustomLists || []) : [];
 
   const createCustomList = ({ name, description = '' }) => {
-    if (!name || !name.trim()) return null;
+    if (!user || !name || !name.trim()) return null;
     const newList = {
       id: `list_${Date.now()}`,
       name: name.trim(),
@@ -43,40 +45,43 @@ export const WatchProgressProvider = ({ children }) => {
       createdAt: new Date().toISOString(),
       items: []
     };
-    setCustomLists(prev => [...prev, newList]);
+    setCustomLists(prev => [...(prev || []), newList]);
     return newList;
   };
 
   const deleteCustomList = (listId) => {
-    setCustomLists(prev => prev.filter(l => l.id !== listId));
+    if (!user) return;
+    setCustomLists(prev => (prev || []).filter(l => l.id !== listId));
   };
 
   const addItemToCustomList = (listId, item) => {
-    if (!item || !item.id) return;
+    if (!user || !item || !item.id) return;
     const strId = String(item.id);
-    setCustomLists(prev => prev.map(l => {
+    setCustomLists(prev => (prev || []).map(l => {
       if (l.id === listId) {
         if (l.items.some(i => String(i.id) === strId)) return l;
-        return { ...l, items: [item, ...l.items] };
+        return { ...l, items: [item, ...(l.items || [])] };
       }
       return l;
     }));
   };
 
   const removeItemFromCustomList = (listId, itemId) => {
+    if (!user) return;
     const strId = String(itemId);
-    setCustomLists(prev => prev.map(l => {
+    setCustomLists(prev => (prev || []).map(l => {
       if (l.id === listId) {
-        return { ...l, items: l.items.filter(i => String(i.id) !== strId) };
+        return { ...l, items: (l.items || []).filter(i => String(i.id) !== strId) };
       }
       return l;
     }));
   };
 
   const isInCustomList = (listId, itemId) => {
+    if (!user) return false;
     const target = customLists.find(l => l.id === listId);
     if (!target) return false;
-    return target.items.some(i => String(i.id) === String(itemId));
+    return (target.items || []).some(i => String(i.id) === String(itemId));
   };
 
   // Save playback timestamp and progress
@@ -92,13 +97,13 @@ export const WatchProgressProvider = ({ children }) => {
     banner = '',
     isMovie = false
   }) => {
-    if (!animeId || !duration || duration <= 0) return;
+    if (!user || !animeId || !duration || duration <= 0) return;
 
     const percentage = Math.min(100, Math.max(0, Math.round((currentTime / duration) * 100)));
     const strId = String(animeId);
 
     setWatchHistory(prev => {
-      const currentEntry = prev[strId] || {};
+      const currentEntry = prev?.[strId] || {};
       const episodesMap = currentEntry.episodes || {};
 
       const updatedEpisodes = {
@@ -116,7 +121,7 @@ export const WatchProgressProvider = ({ children }) => {
       };
 
       return {
-        ...prev,
+        ...(prev || {}),
         [strId]: {
           animeId: strId,
           animeTitle,
@@ -138,8 +143,9 @@ export const WatchProgressProvider = ({ children }) => {
 
   // Remove an entire title from watch history
   const removeProgress = (animeId) => {
+    if (!user) return;
     setWatchHistory(prev => {
-      const copy = { ...prev };
+      const copy = { ...(prev || {}) };
       delete copy[String(animeId)];
       return copy;
     });
@@ -147,11 +153,12 @@ export const WatchProgressProvider = ({ children }) => {
 
   // Remove a specific episode from watch history (1x1 deletion)
   const removeEpisodeProgress = (animeId, seasonNumber, episodeId) => {
+    if (!user) return;
     const strId = String(animeId);
     setWatchHistory(prev => {
-      const currentEntry = prev[strId];
+      const currentEntry = prev?.[strId];
       if (!currentEntry) return prev;
-      const copy = { ...prev };
+      const copy = { ...(prev || {}) };
       const updatedEpisodes = { ...(currentEntry.episodes || {}) };
       const epKey = `s${seasonNumber}_e${episodeId}`;
       delete updatedEpisodes[epKey];
@@ -171,18 +178,21 @@ export const WatchProgressProvider = ({ children }) => {
 
   // Global reset: Clear all watch history
   const clearAllHistory = () => {
+    if (!user) return;
     setWatchHistory({});
   };
 
-  // List of active "Continuar Viendo" items
+  // List of active "Continuar Viendo" items (strictly authenticated)
   const continueWatchingList = useMemo(() => {
+    if (!user || !watchHistory) return [];
     return Object.values(watchHistory)
       .filter(item => item && item.percentage > 2 && item.percentage < 95)
       .sort((a, b) => (b.lastWatched || 0) - (a.lastWatched || 0));
-  }, [watchHistory]);
+  }, [user, watchHistory]);
 
-  // Complete List of all Watched Episodes (Historial Completo de Vistos)
+  // Complete List of all Watched Episodes (strictly authenticated)
   const watchedHistoryList = useMemo(() => {
+    if (!user || !watchHistory) return [];
     const list = [];
     Object.values(watchHistory).forEach(entry => {
       if (!entry) return;
@@ -219,53 +229,54 @@ export const WatchProgressProvider = ({ children }) => {
       }
     });
     return list.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
-  }, [watchHistory]);
+  }, [user, watchHistory]);
 
   // Check if item is in My List
   const isInMyList = (id) => {
-    if (!id) return false;
+    if (!user || !id) return false;
     const strId = String(id);
     return myList.some(item => String(item.id) === strId);
   };
 
   // Add / Remove from My List
   const toggleMyList = (item) => {
-    if (!item || !item.id) return;
+    if (!user || !item || !item.id) return;
     const strId = String(item.id);
     setMyList(prev => {
-      const exists = prev.some(i => String(i.id) === strId);
+      const exists = (prev || []).some(i => String(i.id) === strId);
       if (exists) {
-        return prev.filter(i => String(i.id) !== strId);
+        return (prev || []).filter(i => String(i.id) !== strId);
       } else {
-        return [item, ...prev];
+        return [item, ...(prev || [])];
       }
     });
   };
 
   // Check if item is Favorite
   const isFavorite = (id) => {
-    if (!id) return false;
+    if (!user || !id) return false;
     const strId = String(id);
     return favorites.some(item => String(item.id) === strId);
   };
 
   // Toggle favorite
   const toggleFavorite = (item) => {
-    if (!item || !item.id) return;
+    if (!user || !item || !item.id) return;
     const strId = String(item.id);
     setFavorites(prev => {
-      const exists = prev.some(i => String(i.id) === strId);
+      const exists = (prev || []).some(i => String(i.id) === strId);
       if (exists) {
-        return prev.filter(i => String(i.id) !== strId);
+        return (prev || []).filter(i => String(i.id) !== strId);
       } else {
-        return [item, ...prev];
+        return [item, ...(prev || [])];
       }
     });
   };
 
   // Get specific progress for an episode
   const getEpisodeProgress = (animeId, seasonNumber, episodeId) => {
-    const entry = watchHistory[String(animeId)];
+    if (!user) return null;
+    const entry = watchHistory?.[String(animeId)];
     if (!entry) return null;
     return entry.episodes?.[`s${seasonNumber}_e${episodeId}`] || null;
   };

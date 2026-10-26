@@ -3,10 +3,12 @@ import HeroBanner from '../../components/HeroBanner/HeroBanner';
 import BrandHubs from '../../components/BrandHubs/BrandHubs';
 import ContentCarousel from '../../components/ContentCarousel/ContentCarousel';
 import { useWatchProgress } from '../../contexts/WatchProgressContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { api } from '../../services/api';
 import './Home.css';
 
 const Home = () => {
+  const { user } = useAuth();
   const { continueWatchingList, watchHistory } = useWatchProgress();
 
   // Instant pre-cached state initialization for zero layout shift (CLS = 0) and instant 0ms load
@@ -78,8 +80,8 @@ const Home = () => {
       {/* HBO Max Style Brand / Studio Hubs */}
       <BrandHubs />
 
-      {/* Continue Watching Section (Netflix & Crunchyroll style) */}
-      {continueWatchingList && continueWatchingList.length > 0 && (
+      {/* Continue Watching Section (Netflix & Crunchyroll style - Only for authenticated users) */}
+      {user && continueWatchingList && continueWatchingList.length > 0 && (
         <ContentCarousel
           title="Continuar Viendo"
           subtitle="Retoma tus episodios justo donde los dejaste"

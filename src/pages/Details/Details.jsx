@@ -9,11 +9,13 @@ import ContentCard from '../../components/ContentCard/ContentCard';
 import { api } from '../../services/api';
 import { useWatchProgress } from '../../contexts/WatchProgressContext';
 import { useProfile } from '../../contexts/ProfileContext';
+import { useAuth } from '../../contexts/AuthContext';
 import './Details.css';
 
 const Details = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user, requireAuth } = useAuth();
   const { hideTitle, unhideTitle, isTitleHidden } = useProfile();
   const {
     isInMyList,
@@ -282,7 +284,7 @@ const Details = () => {
 
               <button
                 className={`btn-secondary action-circle-btn ${inList ? 'active' : ''}`}
-                onClick={() => toggleMyList(mediaInfo)}
+                onClick={() => requireAuth(() => toggleMyList(mediaInfo), 'Inicia sesión para añadir títulos a Mi Lista.')}
                 title={inList ? 'Quitar de mi lista' : 'Agregar a mi lista'}
               >
                 {inList ? <Check size={20} /> : <Plus size={20} />}
@@ -291,7 +293,7 @@ const Details = () => {
 
               <button
                 className={`btn-secondary action-circle-btn ${isFav ? 'active-fav' : ''}`}
-                onClick={() => toggleFavorite(mediaInfo)}
+                onClick={() => requireAuth(() => toggleFavorite(mediaInfo), 'Inicia sesión para guardar títulos en tus Favoritos.')}
                 title={isFav ? 'Quitar de favoritos' : 'Marcar favorito'}
               >
                 <Heart size={20} fill={isFav ? 'currentColor' : 'none'} />
@@ -302,7 +304,7 @@ const Details = () => {
               <div className="custom-lists-action-wrapper" ref={customListsMenuRef}>
                 <button
                   className={`btn-secondary action-circle-btn ${isInAnyCustomList ? 'active' : ''}`}
-                  onClick={() => setShowCustomListsMenu(prev => !prev)}
+                  onClick={() => requireAuth(() => setShowCustomListsMenu(prev => !prev), 'Inicia sesión para organizar títulos en tus listas personalizadas.')}
                   title="Agregar o quitar de listas personalizadas"
                 >
                   {isInAnyCustomList ? <FolderCheck size={19} /> : <FolderPlus size={19} />}

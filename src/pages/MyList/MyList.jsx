@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import {
   Bookmark, Clock, Heart, Play, Trash2, CheckCircle2,
-  AlertTriangle, History, ArrowRight, FolderPlus, Plus, X, Film, Sparkles
+  AlertTriangle, History, ArrowRight, FolderPlus, Plus, X, Film, Sparkles, Lock
 } from 'lucide-react';
 import ContentCard from '../../components/ContentCard/ContentCard';
 import { useWatchProgress } from '../../contexts/WatchProgressContext';
@@ -68,6 +68,30 @@ const MyList = ({ defaultTab = 'mylist' }) => {
     setShowClearConfirm(false);
   };
 
+  if (!user) {
+    return (
+      <div className="mylist-page-container">
+        <div className="mylist-guest-lock-card glass-panel fade-in">
+          <div className="guest-lock-icon-wrap">
+            <Lock size={44} className="guest-lock-icon" />
+          </div>
+          <h2 className="guest-lock-title">Tu Espacio Personal está Protegido</h2>
+          <p className="guest-lock-desc">
+            Inicia sesión o regístrate gratis para guardar tus animes favoritos, organizar listas personalizadas y continuar viendo exactamente donde lo dejaste en cualquier dispositivo.
+          </p>
+          <div className="guest-lock-actions">
+            <Link to="/login" className="btn-accent guest-lock-btn">
+              Iniciar Sesión
+            </Link>
+            <Link to="/login?mode=register" className="btn-secondary guest-lock-btn">
+              Crear Cuenta Gratis
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="mylist-page-container">
       <div className="mylist-header-section">
@@ -75,22 +99,6 @@ const MyList = ({ defaultTab = 'mylist' }) => {
         <p className="mylist-subtitle">
           Tus títulos guardados, historial de reproducción y series favoritas en un solo lugar.
         </p>
-
-        {/* Guest Mode Notice */}
-        {!user && (
-          <div className="guest-alert-banner glass-panel fade-in">
-            <div className="guest-alert-info">
-              <Sparkles size={20} className="guest-alert-sparkle" />
-              <div>
-                <strong>Modo Invitado:</strong> Tus títulos se guardan temporalmente en este navegador. Para no perderlos nunca y sincronizarlos con tu celular o Smart TV,{' '}
-                <Link to="/login" className="guest-alert-link">Inicia sesión o regístrate gratis</Link>.
-              </div>
-            </div>
-            <Link to="/login" className="btn-accent guest-alert-btn">
-              Crear Cuenta
-            </Link>
-          </div>
-        )}
 
         {/* Navigation Tabs */}
         <div className="mylist-tabs-row">

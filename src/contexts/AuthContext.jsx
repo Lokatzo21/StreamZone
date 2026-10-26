@@ -22,6 +22,23 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authModalReason, setAuthModalReason] = useState('');
+
+  const requireAuth = (callback, reason = 'Debes iniciar sesión para realizar esta acción.') => {
+    if (user) {
+      if (typeof callback === 'function') callback();
+      return true;
+    }
+    setAuthModalReason(reason);
+    setIsAuthModalOpen(true);
+    return false;
+  };
+
+  const closeAuthModal = () => {
+    setIsAuthModalOpen(false);
+    setAuthModalReason('');
+  };
 
   const syncDown = async (userId) => {
     try {
@@ -42,9 +59,12 @@ export const AuthProvider = ({ children }) => {
             } catch {}
           }
           const strForStorage = JSON.stringify(valToStore);
-          window.localStorage.setItem(row.key, strForStorage);
+          const scopedKey = row.key.startsWith(`streamzone_${userId}_`) 
+            ? row.key 
+            : `streamzone_${userId}_${row.key.replace(/^streamzone_/, '')}`;
+          window.localStorage.setItem(scopedKey, strForStorage);
           window.dispatchEvent(new CustomEvent('local-storage-sync', {
-            detail: { key: row.key, newValue: valToStore }
+            detail: { key: scopedKey, newValue: valToStore }
           }));
         });
       }
@@ -65,6 +85,17 @@ export const AuthProvider = ({ children }) => {
       } else {
         setUser(null);
         setLoading(false);
+        // Clean any residual unscoped streamzone keys for guests
+        try {
+          const keysToRemove = [];
+          for (let i = 0; i < window.localStorage.length; i++) {
+            const k = window.localStorage.key(i);
+            if (k && k.startsWith('streamzone_') && !k.match(/streamzone_[0-9a-fA-F-]{36}_/)) {
+              keysToRemove.push(k);
+            }
+          }
+          keysToRemove.forEach(k => window.localStorage.removeItem(k));
+        } catch {}
       }
     });
 
@@ -94,9 +125,12 @@ export const AuthProvider = ({ children }) => {
                   }
                 } catch {}
               }
-              window.localStorage.setItem(row.key, JSON.stringify(valToStore));
+              const scopedKey = row.key.startsWith(`streamzone_${userId}_`) 
+                ? row.key 
+                : `streamzone_${userId}_${row.key.replace(/^streamzone_/, '')}`;
+              window.localStorage.setItem(scopedKey, JSON.stringify(valToStore));
               window.dispatchEvent(new CustomEvent('local-storage-sync', {
-                detail: { key: row.key, newValue: valToStore }
+                detail: { key: scopedKey, newValue: valToStore }
               }));
             }
           }
@@ -105,12 +139,24 @@ export const AuthProvider = ({ children }) => {
     };
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        syncDown(session.user.id);
-        setupSyncChannel(session.user.id);
-      } else if (syncChannel) {
-        supabase.removeChannel(syncChannel);
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
+      if (currentUser) {
+        syncDown(currentUser.id);
+        setupSyncChannel(currentUser.id);
+      } else {
+        if (syncChannel) supabase.removeChannel(syncChannel);
+        // Clear all streamzone keys from localStorage on logout
+        try {
+          const keysToRemove = [];
+          for (let i = 0; i < window.localStorage.length; i++) {
+            const k = window.localStorage.key(i);
+            if (k && k.startsWith('streamzone_')) {
+              keysToRemove.push(k);
+            }
+          }
+          keysToRemove.forEach(k => window.localStorage.removeItem(k));
+        } catch {}
       }
     });
 
@@ -180,6 +226,10 @@ export const AuthProvider = ({ children }) => {
     signIn,
     signOut,
     updateProfile,
+    isAuthModalOpen,
+    authModalReason,
+    requireAuth,
+    closeAuthModal,
   };
 
   return (

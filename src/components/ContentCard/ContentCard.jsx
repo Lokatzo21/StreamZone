@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Play, Star, CheckCircle2, EyeOff, Heart } from 'lucide-react';
 import { useProfile } from '../../contexts/ProfileContext';
 import { useWatchProgress } from '../../contexts/WatchProgressContext';
+import { useAuth } from '../../contexts/AuthContext';
 import './ContentCard.css';
 
 const ContentCard = ({
@@ -14,6 +15,7 @@ const ContentCard = ({
   const navigate = useNavigate();
   const { hideTitle, isTitleHidden } = useProfile();
   const { isFavorite, toggleFavorite } = useWatchProgress();
+  const { requireAuth } = useAuth();
 
   const [imgLoaded, setImgLoaded] = useState(false);
   const [imgError, setImgError] = useState(false);
@@ -49,11 +51,16 @@ const ContentCard = ({
   const handleToggleFavorite = (e) => {
     e.stopPropagation();
     e.preventDefault();
-    toggleFavorite(item);
+    if (!requireAuth(() => toggleFavorite(item), 'Inicia sesión para guardar títulos en tus Favoritos.')) {
+      return;
+    }
   };
 
   const handleOpenConfirm = (e) => {
     e.stopPropagation();
+    if (!requireAuth(() => setShowHideConfirm(true), 'Inicia sesión para personalizar tus recomendaciones.')) {
+      return;
+    }
     setShowHideConfirm(true);
   };
 
