@@ -1,0 +1,768 @@
+.advanced-player-container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #000;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9);
+  user-select: none;
+  transition: border-radius var(--transition-fast);
+}
+
+/* Native Fullscreen Pseudo-classes (Strictly active ONLY while in OS fullscreen) */
+.advanced-player-container:fullscreen,
+.advanced-player-container:-webkit-full-screen,
+.advanced-player-container:-moz-full-screen,
+.advanced-player-container:-ms-fullscreen {
+  border-radius: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: 100vw !important;
+  max-height: 100vh !important;
+  aspect-ratio: auto !important;
+  background: #000 !important;
+}
+
+/* Fallback class while in fullscreen state */
+:fullscreen .advanced-player-container.fullscreen,
+:-webkit-full-screen .advanced-player-container.fullscreen {
+  border-radius: 0;
+  width: 100vw;
+  height: 100vh;
+}
+
+.advanced-video-element,
+.advanced-iframe-element {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #000;
+  border: none;
+}
+
+/* ==========================================================================
+   Initial Cover / Poster Overlay before playback starts
+   ========================================================================== */
+.player-initial-poster-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 18;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+  cursor: pointer;
+  overflow: hidden;
+  transition: opacity 0.4s ease-out;
+}
+
+.player-initial-poster-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 25%;
+  filter: brightness(0.78);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), filter 0.4s ease;
+}
+
+.player-initial-poster-overlay:hover .player-initial-poster-img {
+  transform: scale(1.03);
+  filter: brightness(0.88);
+}
+
+.player-initial-poster-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(6, 8, 15, 0.25) 0%, rgba(6, 8, 15, 0.75) 100%),
+              linear-gradient(180deg, rgba(6, 8, 15, 0.5) 0%, transparent 40%, rgba(6, 8, 15, 0.8) 100%);
+  pointer-events: none;
+}
+
+.player-initial-big-play-btn {
+  position: relative;
+  z-index: 2;
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 36px rgba(255, 107, 0, 0.55), 0 0 60px rgba(255, 107, 0, 0.3);
+  border: 2.5px solid rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  padding-left: 5px; /* visually center play triangle */
+  transition: all var(--transition-fast);
+}
+
+.player-initial-poster-overlay:hover .player-initial-big-play-btn {
+  transform: scale(1.15);
+  box-shadow: 0 12px 48px rgba(255, 107, 0, 0.75), 0 0 80px rgba(255, 107, 0, 0.5);
+  border-color: #fff;
+  background: #ff7a1a;
+}
+
+/* Buffering Spinner */
+.player-buffering-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  z-index: 20;
+}
+
+.player-spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid rgba(255, 255, 255, 0.15);
+  border-top-color: var(--accent-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.player-buffering-text {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  color: #fff;
+  font-weight: 600;
+}
+
+/* Floating Skip Intro / Outro Buttons */
+.floating-skip-btn {
+  position: absolute;
+  right: 32px;
+  bottom: 96px;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border-radius: 30px;
+  background: rgba(13, 17, 30, 0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1.5px solid var(--accent-primary);
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 700;
+  box-shadow: 0 8px 30px rgba(255, 107, 0, 0.35);
+  transition: all var(--transition-fast);
+  cursor: pointer;
+}
+
+.floating-skip-btn:hover {
+  background: var(--accent-primary);
+  transform: scale(1.06);
+  box-shadow: 0 10px 36px rgba(255, 107, 0, 0.5);
+}
+
+/* Next Episode Countdown Card */
+.player-next-countdown-card {
+  position: absolute;
+  right: 32px;
+  bottom: 96px;
+  z-index: 35;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 20px;
+  border-radius: 14px;
+  background: rgba(10, 13, 24, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.8);
+}
+
+.countdown-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.countdown-label {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+.countdown-number {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--accent-primary);
+}
+
+.countdown-play-now {
+  padding: 8px 16px;
+  font-size: 0.88rem;
+}
+
+/* Resume Prompt Modal (Centered in Player with Backdrop Blur) */
+.player-resume-backdrop {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(4, 6, 14, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  z-index: 60;
+  padding: 24px;
+  animation: resumeFadeIn 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes resumeFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.player-resume-modal {
+  max-width: 450px;
+  width: 100%;
+  padding: 30px 32px;
+  text-align: center;
+  background: rgba(13, 17, 30, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 20px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.9), 0 0 40px rgba(255, 107, 0, 0.12);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: resumePopIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes resumePopIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.resume-icon-badge {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: rgba(255, 107, 0, 0.14);
+  border: 1.5px solid rgba(255, 107, 0, 0.4);
+  color: var(--accent-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 20px rgba(255, 107, 0, 0.25);
+}
+
+.resume-modal-title {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 6px;
+}
+
+.resume-text {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  margin-bottom: 24px;
+  line-height: 1.4;
+}
+
+.resume-text strong {
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.05rem;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 3px 9px;
+  border-radius: 6px;
+  margin-left: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.resume-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.resume-confirm-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
+  font-size: 0.92rem;
+  font-weight: 700;
+  border-radius: 10px;
+  box-shadow: 0 4px 18px rgba(255, 107, 0, 0.35);
+}
+
+.resume-restart-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 18px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: var(--text-secondary);
+  transition: all var(--transition-fast);
+}
+
+.resume-restart-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Top Header Bar */
+.player-top-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 24px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(180deg, rgba(6, 8, 15, 0.85) 0%, transparent 100%);
+  z-index: 25;
+  transition: opacity var(--transition-smooth);
+}
+
+.controls-hidden .player-top-bar {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.player-anime-title {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #fff;
+}
+
+.player-episode-subtitle {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.player-top-actions {
+  position: relative;
+}
+
+.player-server-pill-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all var(--transition-fast);
+}
+
+.player-server-pill-btn:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.server-lang-badge {
+  font-size: 0.68rem;
+  font-weight: 800;
+  background: var(--accent-primary);
+  color: #fff;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* Server Dropdown inside Player */
+.player-servers-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 320px;
+  max-height: 380px;
+  overflow-y: auto;
+  padding: 14px;
+  background: rgba(10, 13, 24, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.dropdown-title {
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+  padding-left: 4px;
+}
+
+.servers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.server-option-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid transparent;
+  color: #fff;
+  transition: all var(--transition-fast);
+  text-align: left;
+}
+
+.server-option-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.server-option-btn.active {
+  background: rgba(255, 107, 0, 0.15);
+  border-color: var(--accent-primary);
+}
+
+.server-opt-name {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.server-opt-desc {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.server-opt-badges {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.srv-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 2px 5px;
+  border-radius: 4px;
+}
+
+.srv-badge.mp4 { background: #00e5ff; color: #000; }
+.srv-badge.hls { background: #8b5cf6; color: #fff; }
+.srv-badge.lang { background: rgba(255, 255, 255, 0.15); color: #fff; }
+.srv-check { color: var(--accent-primary); }
+
+/* Bottom Controls Bar */
+.player-bottom-controls {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 12px 28px 20px 28px;
+  background: linear-gradient(0deg, rgba(6, 8, 15, 0.95) 0%, rgba(6, 8, 15, 0.6) 60%, transparent 100%);
+  z-index: 25;
+  transition: opacity var(--transition-smooth);
+}
+
+.controls-hidden .player-bottom-controls {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Scrubber Timeline */
+.player-scrubber-wrapper {
+  position: relative;
+  width: 100%;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.scrubber-track-background {
+  position: absolute;
+  width: 100%;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+  overflow: visible;
+  transition: height var(--transition-fast);
+}
+
+.player-scrubber-wrapper:hover .scrubber-track-background {
+  height: 8px;
+}
+
+.scrubber-buffered-fill {
+  position: absolute;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.35);
+  border-radius: 3px;
+}
+
+.scrubber-played-fill {
+  position: absolute;
+  height: 100%;
+  background: var(--accent-primary);
+  border-radius: 3px;
+  box-shadow: 0 0 10px var(--accent-primary);
+}
+
+.scrubber-handle-thumb {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.6);
+  opacity: 0;
+  transition: opacity var(--transition-fast), transform var(--transition-fast);
+}
+
+.player-scrubber-wrapper:hover .scrubber-handle-thumb {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1.2);
+}
+
+.scrubber-range-input {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 5;
+}
+
+.scrubber-hover-tooltip {
+  position: absolute;
+  bottom: 24px;
+  transform: translateX(-50%);
+  background: rgba(10, 13, 24, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #fff;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* Controls Row */
+.player-controls-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 6px;
+}
+
+.controls-group-left,
+.controls-group-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.control-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  color: #e2e8f0;
+  transition: all var(--transition-fast);
+}
+
+.control-btn:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.12);
+  transform: scale(1.1);
+}
+
+.play-pause-btn {
+  width: 44px;
+  height: 44px;
+  color: #fff;
+}
+
+/* Volume Slider */
+.volume-control-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.volume-slider-input {
+  width: 70px;
+  height: 4px;
+  accent-color: var(--accent-primary);
+  cursor: pointer;
+}
+
+/* Time Display */
+.player-time-display {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.85rem;
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.current-time {
+  color: #fff;
+}
+
+/* Settings Menu Popover */
+.settings-menu-wrapper {
+  position: relative;
+}
+
+.player-settings-dropdown {
+  position: absolute;
+  bottom: calc(100% + 12px);
+  right: 0;
+  width: 200px;
+  padding: 14px;
+  background: rgba(10, 13, 24, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.settings-heading {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.speed-options-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.speed-option-btn {
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.speed-option-btn.active {
+  background: var(--accent-primary);
+}
+
+@media (max-width: 768px) {
+  .advanced-player-container {
+    border-radius: 0;
+  }
+  .volume-slider-input {
+    display: none;
+  }
+  .player-top-bar {
+    padding: 14px 16px;
+  }
+  .player-bottom-controls {
+    padding: 8px 16px 14px 16px;
+  }
+  .controls-group-left, .controls-group-right {
+    gap: 8px;
+  }
+  .floating-skip-btn {
+    right: 16px;
+    bottom: 70px;
+    padding: 8px 16px;
+    font-size: 0.85rem;
+  }
+}
+
+/* ==========================================================================
+   Clean View Mode (Ojo con línea en diagonal / Ocultar controles y servidores)
+   ========================================================================== */
+.clean-view-mode-active .player-top-bar,
+.clean-view-mode-active .player-bottom-controls {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transform: translateY(20px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.clean-view-mode-active .player-top-bar {
+  transform: translateY(-20px);
+}
+
+.clean-view-btn.active {
+  color: var(--accent-primary) !important;
+}
+
+/* Floating Clean View Exit button */
+.floating-clean-view-exit-btn {
+  position: absolute;
+  top: 24px;
+  right: 28px;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  border-radius: 30px;
+  background: rgba(13, 17, 30, 0.78);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+  opacity: 0.65;
+  transition: all var(--transition-fast);
+}
+
+.floating-clean-view-exit-btn:hover {
+  opacity: 1;
+  background: rgba(13, 17, 30, 0.95);
+  border-color: var(--accent-primary);
+  transform: scale(1.05);
+  box-shadow: 0 6px 24px rgba(255, 107, 0, 0.35);
+}
+
+/* Keep floating Skip Intro & Next Episode neatly positioned when clean mode is active */
+.clean-view-mode-active .floating-skip-btn.intro,
+.clean-view-mode-active .player-next-countdown-card {
+  bottom: 28px !important;
+}

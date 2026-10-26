@@ -1,0 +1,219 @@
+.catalog-page-container {
+  width: 100%;
+  min-height: 100vh;
+  padding-bottom: 80px;
+}
+
+.catalog-header-section {
+  padding: 130px 48px 40px 48px;
+  background: linear-gradient(180deg, rgba(16, 22, 47, 0.6) 0%, rgba(6, 8, 15, 0) 100%);
+}
+
+.catalog-header-content {
+  max-width: 1720px;
+  margin: 0 auto;
+}
+
+.catalog-eyebrow {
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--accent-primary);
+  letter-spacing: 1px;
+}
+
+.catalog-main-title {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: -0.5px;
+  margin: 6px 0 12px 0;
+}
+
+.catalog-description {
+  max-width: 650px;
+  font-size: 1.05rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+/* Sticky Filters Bar */
+.catalog-filters-sticky-bar {
+  position: sticky;
+  top: 72px;
+  z-index: 100;
+  background: rgba(6, 8, 15, 0.92);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 16px 48px;
+}
+
+.catalog-filters-container {
+  max-width: 1720px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.category-pills-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.category-pill {
+  padding: 8px 18px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all var(--transition-fast);
+}
+
+.category-pill:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+.category-pill.active {
+  background: var(--accent-primary);
+  color: #fff;
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 14px var(--accent-glow);
+}
+
+.secondary-filters-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.filter-dropdown-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filter-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.filter-select {
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-subtle);
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  outline: none;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.filter-select:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.filter-select option {
+  background: #0d111d;
+  color: #fff;
+}
+
+/* Grid Area */
+.catalog-grid-container {
+  max-width: 1720px;
+  margin: 36px auto 0 auto;
+  padding: 0 48px;
+}
+
+.catalog-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.catalog-cards-grid > * {
+  min-width: 0;
+  width: 100%;
+}
+
+.catalog-loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 100px 0;
+  color: var(--text-secondary);
+}
+
+.catalog-empty-state {
+  text-align: center;
+  padding: 60px 30px;
+  max-width: 500px;
+  margin: 40px auto;
+}
+
+.catalog-empty-state h3 {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  color: #fff;
+  margin-bottom: 8px;
+}
+
+.catalog-empty-state p {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  margin-bottom: 24px;
+}
+
+.catalog-load-more-wrap {
+  display: flex;
+  justify-content: center;
+  margin-top: 48px;
+}
+
+.load-more-btn {
+  padding: 14px 40px;
+  font-size: 1rem;
+}
+
+@media (max-width: 1400px) {
+  .catalog-cards-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1100px) {
+  .catalog-cards-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .catalog-header-section {
+    padding: 100px 20px 24px 20px;
+  }
+  .catalog-filters-sticky-bar {
+    padding: 12px 20px;
+  }
+  .catalog-grid-container {
+    padding: 0 20px;
+  }
+  .catalog-cards-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+}

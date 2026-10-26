@@ -1,0 +1,194 @@
+.content-carousel-section {
+  width: 100%;
+  margin: 36px 0;
+  position: relative;
+}
+
+.carousel-header {
+  max-width: 1720px;
+  margin: 0 auto 16px auto;
+  padding: 0 48px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+
+.carousel-title {
+  font-family: var(--font-display);
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.3px;
+}
+
+.carousel-subtitle {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.carousel-view-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-display);
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--accent-primary);
+  transition: all var(--transition-fast);
+}
+
+.carousel-view-all:hover {
+  color: #fff;
+  transform: translateX(3px);
+}
+
+.carousel-viewport-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.carousel-track {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+  padding: 22px 84px 34px 84px;
+  max-width: 1720px;
+  margin: 0 auto;
+  scrollbar-width: none;
+}
+
+.carousel-track::-webkit-scrollbar {
+  display: none;
+}
+
+.carousel-card-item {
+  flex: 0 0 calc((100% - (16px * 5)) / 6);
+  max-width: calc((100% - (16px * 5)) / 6);
+  min-width: 170px;
+  width: 100%;
+  box-sizing: border-box;
+  scroll-snap-align: start;
+}
+
+/* Edge Hover Alignment: Prevent clipping on start and end */
+.carousel-card-item:first-child .content-card,
+.carousel-card-item:first-child .card-media-wrapper {
+  transform-origin: left center !important;
+}
+
+.carousel-card-item:last-child .content-card,
+.carousel-card-item:last-child .card-media-wrapper {
+  transform-origin: right center !important;
+}
+
+/* Arrow buttons */
+.carousel-arrow-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-55%);
+  width: 46px;
+  height: 88px;
+  background: rgba(8, 11, 20, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-subtle);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 40;
+  cursor: pointer;
+  border-radius: 10px;
+  transition: all var(--transition-fast);
+}
+
+.carousel-arrow-btn.left {
+  left: 16px;
+}
+
+.carousel-arrow-btn.right {
+  right: 16px;
+}
+
+.carousel-arrow-btn:hover {
+  background: var(--accent-primary);
+  color: #fff;
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 20px var(--accent-glow);
+  transform: translateY(-55%) scale(1.05);
+}
+
+/* Specific Top 10 Rank Carousel Styling: Spacious, Netflix-prominent format */
+.is-rank-carousel .carousel-track {
+  gap: 32px;
+  padding: 24px 88px 38px 88px;
+}
+
+.is-rank-carousel .carousel-card-item {
+  flex: 0 0 calc((100% - (32px * 2.5)) / 3.4);
+  max-width: calc((100% - (32px * 2.5)) / 3.4);
+  min-width: 320px;
+}
+
+/* 10th Double Digit Item Extra Breathing Room */
+.is-rank-carousel .carousel-card-item:nth-child(10),
+.is-rank-carousel .carousel-card-item:has(.double-digit) {
+  flex: 0 0 calc((100% - (32px * 2.5)) / 3.0);
+  max-width: calc((100% - (32px * 2.5)) / 3.0);
+  min-width: 370px;
+}
+
+@media (max-width: 1400px) {
+  .carousel-card-item {
+    flex: 0 0 calc((100% - (16px * 4)) / 5);
+  }
+  .is-rank-carousel .carousel-card-item {
+    flex: 0 0 calc((100% - (20px * 2)) / 3.3);
+    max-width: calc((100% - (20px * 2)) / 3.3);
+    min-width: 250px;
+  }
+}
+
+@media (max-width: 1100px) {
+  .carousel-card-item {
+    flex: 0 0 calc((100% - (16px * 3)) / 4);
+  }
+  .is-rank-carousel .carousel-card-item {
+    flex: 0 0 calc((100% - 16px) / 2.4);
+    max-width: calc((100% - 16px) / 2.4);
+    min-width: 230px;
+  }
+}
+
+@media (max-width: 768px) {
+  .carousel-header {
+    padding: 0 20px;
+    margin-bottom: 12px;
+  }
+  .carousel-title {
+    font-size: 1.2rem;
+  }
+  .carousel-track {
+    padding: 8px 20px 16px 20px;
+    gap: 12px;
+  }
+  .carousel-card-item {
+    flex: 0 0 calc((100% - 12px) / 2.3);
+    min-width: 140px;
+  }
+  .is-rank-carousel .carousel-track {
+    padding: 8px 20px 16px 20px;
+    gap: 14px;
+  }
+  .is-rank-carousel .carousel-card-item {
+    flex: 0 0 calc(100% - 40px);
+    max-width: 320px;
+    min-width: 220px;
+  }
+  .carousel-arrow-btn {
+    display: none;
+  }
+}

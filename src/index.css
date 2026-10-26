@@ -1,0 +1,224 @@
+:root {
+  /* Premium Hybrid Dark Theme Palette */
+  --bg-main: #06080f;
+  --bg-surface: #0a0d18;
+  --bg-surface-elevated: #111628;
+  --bg-card: rgba(17, 22, 40, 0.7);
+  --bg-card-hover: rgba(26, 34, 62, 0.85);
+  
+  /* Brand Accents */
+  --accent-primary: #ff6b00; /* Crunchyroll vibrant orange */
+  --accent-netflix: #e50914; /* Netflix crimson */
+  --accent-violet: #8b5cf6;  /* HBO Max / Cyber violet */
+  --accent-cyan: #00e5ff;    /* Apple TV+ / Sci-fi cyan */
+  --accent-glow: rgba(255, 107, 0, 0.35);
+  --accent-gradient: linear-gradient(135deg, #ff6b00 0%, #ff3b30 50%, #8b5cf6 100%);
+  --accent-hbo: linear-gradient(135deg, #002b80 0%, #5822b4 50%, #9933ff 100%);
+
+  /* Text & Neutral Colors */
+  --text-main: #ffffff;
+  --text-secondary: #a0aec0;
+  --text-muted: #64748b;
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-highlight: rgba(255, 255, 255, 0.18);
+  --glass-blur: blur(24px);
+
+  /* Fonts */
+  --font-display: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  /* Transitions */
+  --transition-fast: 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-smooth: 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-slow: 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html {
+  overflow-x: hidden;
+  color-scheme: dark;
+}
+
+body {
+  width: 100%;
+  min-height: 100vh;
+  background-color: #06080f;
+  color: var(--text-main);
+  font-family: var(--font-body);
+  line-height: 1.5;
+  position: relative;
+}
+
+/* GPU-accelerated fixed background (Eliminates scroll repaint lag completely) */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at 50% 0%, #10162f 0%, #06080f 50%, #04050a 100%);
+  z-index: -1;
+  pointer-events: none;
+  transform: translateZ(0);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #06080f;
+}
+::-webkit-scrollbar-thumb {
+  background: #1e2640;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-primary);
+}
+
+/* Smart TV & Remote Focus outline */
+:focus-visible {
+  outline: 3px solid var(--accent-primary);
+  outline-offset: 4px;
+  border-radius: 8px;
+}
+
+button {
+  font-family: var(--font-display);
+  cursor: pointer;
+  border: none;
+  background: none;
+  transition: all var(--transition-smooth);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Glassmorphism card container */
+.glass-panel {
+  background: var(--bg-card);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+}
+
+/* Buttons */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 28px;
+  background: var(--text-main);
+  color: #000;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(255, 255, 255, 0.25);
+  transition: all var(--transition-fast);
+}
+
+.btn-primary:hover {
+  transform: scale(1.04);
+  background: #f0f0f0;
+  box-shadow: 0 6px 28px rgba(255, 255, 255, 0.35);
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 10px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  transition: all var(--transition-fast);
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.22);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: scale(1.03);
+}
+
+.btn-accent {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 26px;
+  background: var(--accent-primary);
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  border-radius: 10px;
+  box-shadow: 0 4px 24px var(--accent-glow);
+  transition: all var(--transition-fast);
+}
+
+.btn-accent:hover {
+  transform: scale(1.04);
+  filter: brightness(1.15);
+  box-shadow: 0 6px 30px rgba(255, 107, 0, 0.5);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 1; filter: drop-shadow(0 0 16px var(--accent-primary)); }
+}
+
+.fade-in {
+  animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Route Suspense Fallback & Shimmer Spinner */
+.route-loading-fallback {
+  min-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.player-spinner {
+  width: 44px;
+  height: 44px;
+  border: 3.5px solid rgba(255, 255, 255, 0.12);
+  border-top-color: var(--accent-primary);
+  border-right-color: var(--accent-violet);
+  border-radius: 50%;
+  animation: spin 0.8s cubic-bezier(0.5, 0.1, 0.5, 0.9) infinite;
+}
+
+.route-loading-text {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  letter-spacing: 0.5px;
+}
