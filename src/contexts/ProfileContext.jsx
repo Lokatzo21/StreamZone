@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
+import { useAuth } from './AuthContext';
 
 const ProfileContext = createContext();
 
@@ -28,7 +29,7 @@ const DEFAULT_AVATARS = [
 const INITIAL_PROFILES = [
   {
     id: 'profile_1',
-    name: 'Manuel',
+    name: 'Principal',
     avatar: '/avatars/1.webp',
     isKid: false,
     color: '#ff6b00'
@@ -50,10 +51,27 @@ const INITIAL_PROFILES = [
 ];
 
 export const ProfileProvider = ({ children }) => {
+  const { user } = useAuth();
   const [profiles, setProfiles] = useLocalStorage('streamzone_profiles_v1', INITIAL_PROFILES);
   const [activeProfileId, setActiveProfileId] = useLocalStorage('streamzone_active_profile_id', 'profile_1');
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isHiddenModalOpen, setIsHiddenModalOpen] = useState(false);
+
+  // Auto-migrate any previously cached 'Manuel' profiles to 'Principal' or the current logged user
+  useEffect(() => {
+    setProfiles(prev => {
+      let changed = false;
+      const updated = prev.map((p, idx) => {
+        if (p.name === 'Manuel') {
+          changed = true;
+          const newName = user?.user_metadata?.username || (user?.email ? user.email.split('@')[0] : (idx === 0 ? 'Principal' : p.name));
+          return { ...p, name: newName };
+        }
+        return p;
+      });
+      return changed ? updated : prev;
+    });
+  }, [user]);
 
   // Hidden titles stored per profile in localStorage
   const [hiddenTitles, setHiddenTitles] = useLocalStorage(`streamzone_hidden_titles_${activeProfileId || 'profile_1'}`, []);

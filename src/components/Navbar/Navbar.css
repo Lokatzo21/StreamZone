@@ -125,6 +125,35 @@
   display: inline-block;
 }
 
+/* Guest Actions / Streaming CTA Button */
+.navbar-guest-actions {
+  display: flex;
+  align-items: center;
+}
+
+.btn-nav-login {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  border-radius: 20px;
+  background: var(--accent-gradient, linear-gradient(135deg, #ff6b00 0%, #ff8800 100%));
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 0.92rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all var(--transition-fast);
+  box-shadow: 0 4px 14px rgba(255, 107, 0, 0.35);
+  white-space: nowrap;
+}
+
+.btn-nav-login:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.1);
+  box-shadow: 0 6px 20px rgba(255, 107, 0, 0.55);
+}
+
 .profile-menu-wrapper {
   position: relative;
 }

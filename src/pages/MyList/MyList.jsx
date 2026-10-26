@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import {
   Bookmark, Clock, Heart, Play, Trash2, CheckCircle2,
-  AlertTriangle, History, ArrowRight, FolderPlus, Plus, X, Film
+  AlertTriangle, History, ArrowRight, FolderPlus, Plus, X, Film, Sparkles
 } from 'lucide-react';
 import ContentCard from '../../components/ContentCard/ContentCard';
 import { useWatchProgress } from '../../contexts/WatchProgressContext';
+import { useAuth } from '../../contexts/AuthContext';
 import './MyList.css';
 
 const MyList = ({ defaultTab = 'mylist' }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
   const {
     myList,
     continueWatchingList,
@@ -73,6 +75,22 @@ const MyList = ({ defaultTab = 'mylist' }) => {
         <p className="mylist-subtitle">
           Tus títulos guardados, historial de reproducción y series favoritas en un solo lugar.
         </p>
+
+        {/* Guest Mode Notice */}
+        {!user && (
+          <div className="guest-alert-banner glass-panel fade-in">
+            <div className="guest-alert-info">
+              <Sparkles size={20} className="guest-alert-sparkle" />
+              <div>
+                <strong>Modo Invitado:</strong> Tus títulos se guardan temporalmente en este navegador. Para no perderlos nunca y sincronizarlos con tu celular o Smart TV,{' '}
+                <Link to="/login" className="guest-alert-link">Inicia sesión o regístrate gratis</Link>.
+              </div>
+            </div>
+            <Link to="/login" className="btn-accent guest-alert-btn">
+              Crear Cuenta
+            </Link>
+          </div>
+        )}
 
         {/* Navigation Tabs */}
         <div className="mylist-tabs-row">

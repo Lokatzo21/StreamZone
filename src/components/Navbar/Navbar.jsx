@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Search, Bell, Menu, X, ChevronDown, User, Shield, LogOut, Heart, Bookmark, Sparkles, EyeOff } from 'lucide-react';
+import { Search, Bell, Menu, X, ChevronDown, User, Shield, LogOut, Heart, Bookmark, Sparkles, EyeOff, LogIn } from 'lucide-react';
 import { useProfile } from '../../contexts/ProfileContext';
 import { useAuth } from '../../contexts/AuthContext';
 import './Navbar.css';
@@ -102,113 +102,111 @@ const Navbar = ({ onOpenSearch }) => {
             <span className="search-hint">Buscar títulos...</span>
           </button>
 
-          {/* User Profile Menu */}
-          <div className="profile-menu-wrapper" ref={profileMenuRef}>
-            <button
-              className="profile-btn"
-              onClick={() => setProfileDropdownOpen(prev => !prev)}
-              aria-label="Menú de perfil"
-            >
-              <img
-                src={activeProfile?.avatar || '/avatars/1.webp'}
-                alt={activeProfile?.name || 'Perfil'}
-                className="profile-avatar-img"
-              />
-              <span className="profile-name-label">{activeProfile?.name || 'Perfil'}</span>
-              <ChevronDown size={16} className={`chevron-icon ${profileDropdownOpen ? 'open' : ''}`} />
-            </button>
+          {/* User Profile Menu (Logged in) OR Iniciar Sesión (Guest) */}
+          {user ? (
+            <div className="profile-menu-wrapper" ref={profileMenuRef}>
+              <button
+                className="profile-btn"
+                onClick={() => setProfileDropdownOpen(prev => !prev)}
+                aria-label="Menú de perfil"
+              >
+                <img
+                  src={activeProfile?.avatar || '/avatars/1.webp'}
+                  alt={activeProfile?.name || 'Perfil'}
+                  className="profile-avatar-img"
+                />
+                <span className="profile-name-label">{activeProfile?.name || 'Mi Perfil'}</span>
+                <ChevronDown size={16} className={`chevron-icon ${profileDropdownOpen ? 'open' : ''}`} />
+              </button>
 
-            {/* Profile Dropdown */}
-            {profileDropdownOpen && (
-              <div className="profile-dropdown glass-panel fade-in">
-                <div className="dropdown-header">
-                  <img
-                    src={activeProfile?.avatar || '/avatars/1.webp'}
-                    alt={activeProfile?.name}
-                    className="dropdown-avatar"
-                  />
-                  <div className="dropdown-user-info">
-                    <p className="dropdown-user-name">{activeProfile?.name}</p>
-                    <p className="dropdown-user-role">{user ? user.email : 'Modo Invitado'}</p>
+              {/* Profile Dropdown */}
+              {profileDropdownOpen && (
+                <div className="profile-dropdown glass-panel fade-in">
+                  <div className="dropdown-header">
+                    <img
+                      src={activeProfile?.avatar || '/avatars/1.webp'}
+                      alt={activeProfile?.name}
+                      className="dropdown-avatar"
+                    />
+                    <div className="dropdown-user-info">
+                      <p className="dropdown-user-name">{activeProfile?.name || 'Mi Perfil'}</p>
+                      <p className="dropdown-user-role">{user.email}</p>
+                    </div>
                   </div>
-                </div>
 
-                <div className="dropdown-divider" />
+                  <div className="dropdown-divider" />
 
-                <button
-                  className="dropdown-item"
-                  onClick={() => {
-                    setProfileDropdownOpen(false);
-                    setIsProfileModalOpen(true);
-                  }}
-                >
-                  <User size={18} />
-                  <span>Cambiar de Perfil</span>
-                </button>
+                  <button
+                    className="dropdown-item"
+                    onClick={() => {
+                      setProfileDropdownOpen(false);
+                      setIsProfileModalOpen(true);
+                    }}
+                  >
+                    <User size={18} />
+                    <span>Cambiar de Perfil</span>
+                  </button>
 
-                <Link
-                  to="/favorites"
-                  className="dropdown-item"
-                  onClick={() => setProfileDropdownOpen(false)}
-                >
-                  <Heart size={18} />
-                  <span>Mis Favoritos</span>
-                </Link>
-
-                <Link
-                  to="/my-list"
-                  className="dropdown-item"
-                  onClick={() => setProfileDropdownOpen(false)}
-                >
-                  <Bookmark size={18} />
-                  <span>Mi Lista y Continuar Viendo</span>
-                </Link>
-
-                <button
-                  className="dropdown-item"
-                  onClick={() => {
-                    setProfileDropdownOpen(false);
-                    setIsHiddenModalOpen(true);
-                  }}
-                >
-                  <EyeOff size={18} />
-                  <span style={{ flex: 1, textAlign: 'left' }}>Títulos Ocultos</span>
-                  {hiddenTitles && hiddenTitles.length > 0 && (
-                    <span className="dropdown-counter-pill">{hiddenTitles.length}</span>
-                  )}
-                </button>
-
-                {isAdmin && (
                   <Link
-                    to="/admin"
+                    to="/favorites"
                     className="dropdown-item"
                     onClick={() => setProfileDropdownOpen(false)}
                   >
-                    <Shield size={18} />
-                    <span>Panel Administrador</span>
+                    <Heart size={18} />
+                    <span>Mis Favoritos</span>
                   </Link>
-                )}
 
-                <div className="dropdown-divider" />
+                  <Link
+                    to="/my-list"
+                    className="dropdown-item"
+                    onClick={() => setProfileDropdownOpen(false)}
+                  >
+                    <Bookmark size={18} />
+                    <span>Mi Lista y Continuar Viendo</span>
+                  </Link>
 
-                {user ? (
+                  <button
+                    className="dropdown-item"
+                    onClick={() => {
+                      setProfileDropdownOpen(false);
+                      setIsHiddenModalOpen(true);
+                    }}
+                  >
+                    <EyeOff size={18} />
+                    <span style={{ flex: 1, textAlign: 'left' }}>Títulos Ocultos</span>
+                    {hiddenTitles && hiddenTitles.length > 0 && (
+                      <span className="dropdown-counter-pill">{hiddenTitles.length}</span>
+                    )}
+                  </button>
+
+                  {isAdmin && (
+                    <Link
+                      to="/admin"
+                      className="dropdown-item"
+                      onClick={() => setProfileDropdownOpen(false)}
+                    >
+                      <Shield size={18} />
+                      <span>Panel Administrador</span>
+                    </Link>
+                  )}
+
+                  <div className="dropdown-divider" />
+
                   <button className="dropdown-item logout" onClick={handleSignOut}>
                     <LogOut size={18} />
                     <span>Cerrar Sesión</span>
                   </button>
-                ) : (
-                  <Link
-                    to="/login"
-                    className="dropdown-item login-btn-drop"
-                    onClick={() => setProfileDropdownOpen(false)}
-                  >
-                    <User size={18} />
-                    <span>Iniciar Sesión</span>
-                  </Link>
-                )}
-              </div>
-            )}
-          </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="navbar-guest-actions">
+              <Link to="/login" className="btn-nav-login" title="Iniciar sesión o registrarte">
+                <LogIn size={16} />
+                <span>Iniciar Sesión</span>
+              </Link>
+            </div>
+          )}
 
           {/* Mobile Hamburger Button */}
           <button
@@ -238,16 +236,28 @@ const Navbar = ({ onOpenSearch }) => {
           </div>
 
           <div className="mobile-menu-footer">
-            <button
-              className="btn-accent mobile-profile-switch"
-              onClick={() => {
-                setMobileMenuOpen(false);
-                setIsProfileModalOpen(true);
-              }}
-            >
-              <User size={18} />
-              <span>Cambiar Perfil ({activeProfile?.name})</span>
-            </button>
+            {user ? (
+              <button
+                className="btn-accent mobile-profile-switch"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  setIsProfileModalOpen(true);
+                }}
+              >
+                <User size={18} />
+                <span>Cambiar Perfil ({activeProfile?.name || 'Perfil'})</span>
+              </button>
+            ) : (
+              <Link
+                to="/login"
+                className="btn-accent mobile-profile-switch"
+                onClick={() => setMobileMenuOpen(false)}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', textDecoration: 'none' }}
+              >
+                <LogIn size={18} />
+                <span>Iniciar Sesión / Registrarse</span>
+              </Link>
+            )}
           </div>
         </div>
       )}

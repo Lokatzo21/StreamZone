@@ -143,6 +143,20 @@ export const AuthProvider = ({ children }) => {
   };
 
   const signOut = async () => {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const keysToRemove = [];
+        for (let i = 0; i < window.localStorage.length; i++) {
+          const k = window.localStorage.key(i);
+          if (k && (k.startsWith('streamzone_') || k.startsWith('az_'))) {
+            keysToRemove.push(k);
+          }
+        }
+        keysToRemove.forEach(k => window.localStorage.removeItem(k));
+      }
+    } catch (e) {
+      console.warn('Error clearing localStorage on logout:', e);
+    }
     return supabase.auth.signOut();
   };
 
