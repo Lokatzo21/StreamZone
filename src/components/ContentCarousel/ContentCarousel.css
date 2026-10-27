@@ -53,11 +53,14 @@
   gap: 16px;
   overflow-x: auto;
   scroll-behavior: smooth;
-  scroll-snap-type: x mandatory;
+  scroll-snap-type: x proximity;
+  scroll-padding: 0 84px;
+  scroll-padding-inline: 84px;
   padding: 22px 84px 34px 84px;
   max-width: 1720px;
   margin: 0 auto;
   scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
 }
 
 .carousel-track::-webkit-scrollbar {
@@ -173,7 +176,10 @@
   }
   .carousel-track {
     padding: 8px 20px 16px 20px;
+    scroll-padding: 0 20px;
+    scroll-padding-inline: 20px;
     gap: 12px;
+    scroll-snap-type: x proximity;
   }
   .carousel-card-item {
     flex: 0 0 calc((100% - 12px) / 2.3);
@@ -181,7 +187,10 @@
   }
   .is-rank-carousel .carousel-track {
     padding: 8px 20px 16px 20px;
+    scroll-padding: 0 20px;
+    scroll-padding-inline: 20px;
     gap: 14px;
+    scroll-snap-type: x proximity;
   }
   .is-rank-carousel .carousel-card-item {
     flex: 0 0 calc(100% - 40px);
@@ -219,7 +228,10 @@
 .device-tv .carousel-track,
 .tv-mode .carousel-track {
   padding: 28px 60px 52px 60px;
+  scroll-padding: 0 60px;
+  scroll-padding-inline: 60px;
   gap: 24px;
+  scroll-snap-type: x proximity;
 }
 
 .device-tv .carousel-card-item,

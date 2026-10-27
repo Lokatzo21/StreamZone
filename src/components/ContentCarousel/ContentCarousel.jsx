@@ -29,6 +29,9 @@ const ContentCarousel = ({
   };
 
   useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollLeft = 0;
+    }
     checkScroll();
     const el = scrollRef.current;
     if (el) {
