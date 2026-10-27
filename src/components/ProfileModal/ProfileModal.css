@@ -281,3 +281,22 @@
   background: rgba(239, 68, 68, 0.2);
   border-color: #ef4444;
 }
+
+@media (max-width: 600px) {
+  .profile-modal-backdrop {
+    padding: 12px;
+  }
+  .profile-modal-dialog {
+    padding: 24px 16px;
+    border-radius: 16px;
+  }
+  .modal-title {
+    font-size: 1.4rem;
+  }
+  .modal-subtitle {
+    margin-bottom: 20px;
+  }
+  .profiles-grid {
+    gap: 16px;
+  }
+}

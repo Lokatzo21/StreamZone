@@ -365,6 +365,72 @@
   }
 }
 
+@media (max-width: 768px) {
+  .mylist-page-container {
+    padding: 85px 16px 40px 16px;
+    overflow-x: hidden;
+    width: 100%;
+  }
+
+  .mylist-tabs-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 8px;
+    margin-bottom: 20px;
+    width: 100%;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .mylist-tabs-row::-webkit-scrollbar {
+    display: none;
+  }
+
+  .tab-btn {
+    flex-shrink: 0;
+    white-space: nowrap;
+    padding: 8px 14px;
+    font-size: 0.86rem;
+    gap: 6px;
+  }
+
+  .mylist-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+  }
+
+  .history-control-bar {
+    padding: 14px 16px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .clear-all-history-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .custom-lists-toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .custom-lists-chips-track {
+    width: 100%;
+  }
+
+  .btn-create-list-trigger {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
 @media (max-width: 600px) {
   .mylist-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));

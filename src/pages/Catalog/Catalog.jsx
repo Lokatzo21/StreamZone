@@ -6,7 +6,7 @@ import { api, TMDB_GENRES } from '../../services/api';
 import './Catalog.css';
 
 const CATEGORIES = [
-  { id: 'todos', label: 'Todo el Catálogo' },
+  { id: 'todos', label: 'Todos' },
   { id: 'peliculas', label: 'Películas' },
   { id: 'series', label: 'Series' },
   { id: 'animes', label: 'Anime' },
