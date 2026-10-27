@@ -1,0 +1,134 @@
+/* ==============================================================
+   STREAMZONA MOBILE BOTTOM NAVIGATION (HBO Max / Apple TV+ Style)
+   60/120 FPS Fluid Bottom Navigation Bar
+   ============================================================== */
+
+.mobile-bottom-nav {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 990;
+  background: rgba(7, 10, 19, 0.94);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 -10px 32px rgba(0, 0, 0, 0.75);
+  padding-bottom: max(env(safe-area-inset-bottom, 0px), 8px);
+  user-select: none;
+  transform: translate3d(0, 0, 0);
+  will-change: transform;
+}
+
+@media (max-width: 768px) {
+  .mobile-bottom-nav {
+    display: block;
+  }
+}
+
+.bottom-nav-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  height: 60px;
+  max-width: 540px;
+  margin: 0 auto;
+  padding: 0 6px;
+}
+
+.bottom-nav-item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-width: 56px;
+  min-height: 52px;
+  padding: 6px 10px;
+  color: #94a3b8;
+  text-decoration: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  outline: none;
+  transition: color 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.bottom-nav-item:active {
+  transform: scale(0.92);
+}
+
+.bottom-nav-icon-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.bottom-nav-item.active .bottom-nav-icon-wrap {
+  transform: translateY(-2px);
+  color: var(--accent-primary);
+  filter: drop-shadow(0 0 10px rgba(255, 107, 0, 0.55));
+}
+
+.bottom-nav-item.active {
+  color: #ffffff;
+}
+
+.bottom-nav-label {
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  line-height: 1;
+  transition: color 0.18s ease;
+}
+
+.bottom-nav-item.active .bottom-nav-label {
+  color: var(--accent-primary);
+  font-weight: 700;
+}
+
+.bottom-nav-avatar {
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  transition: border-color 0.18s ease;
+}
+
+.bottom-nav-item.active .bottom-nav-avatar {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 10px rgba(255, 107, 0, 0.65);
+}
+
+.bottom-nav-indicator {
+  position: absolute;
+  top: 4px;
+  width: 20px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--accent-primary);
+  box-shadow: 0 0 8px var(--accent-primary);
+  animation: navIndicatorIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes navIndicatorIn {
+  from {
+    opacity: 0;
+    transform: scaleX(0.3);
+  }
+  to {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}

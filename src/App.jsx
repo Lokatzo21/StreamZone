@@ -1,6 +1,7 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar/Navbar';
+import BottomNav from './components/BottomNav/BottomNav';
 import Footer from './components/Footer/Footer';
 import SearchModal from './components/SearchModal/SearchModal';
 import ProfileModal from './components/ProfileModal/ProfileModal';
@@ -51,7 +52,7 @@ const AppContent = () => {
   }, []);
 
   return (
-    <div className={`app-layout ${isSmartTV ? 'tv-mode' : ''} ${isMobile ? 'mobile-mode' : ''} ${isPocoM6Pro ? 'poco-mode' : ''}`}>
+    <div className={`app-layout ${isSmartTV ? 'tv-mode' : ''} ${isMobile ? 'mobile-mode' : ''} ${isPocoM6Pro ? 'poco-mode' : ''} ${isWatchPage ? 'watch-mode' : ''}`}>
       {/* Auto-scroll to top on every navigation */}
       <ScrollToTop />
 
@@ -81,6 +82,9 @@ const AppContent = () => {
 
       {/* Hide footer in theater mode for clean full-screen viewing */}
       {!isWatchPage && <Footer />}
+
+      {/* Mobile Bottom Navigation Bar (Apple TV / HBO Max style) */}
+      {!isWatchPage && <BottomNav onOpenSearch={() => setIsSearchOpen(true)} />}
     </div>
   );
 };

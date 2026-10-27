@@ -275,7 +275,7 @@ a {
 }
 
 /* ==============================================================
-   MOBILE & POCO M6 PRO 5G (FHD+ 120Hz) FLUID SCALING
+   MOBILE & POCO M6 PRO 5G (FHD+ 120Hz) FLUID SCALING & SAFE AREAS
    ============================================================== */
 @media (max-width: 768px) {
   body {
@@ -287,9 +287,32 @@ a {
     overflow-x: hidden;
   }
 
-  /* Thumb-friendly tap targets */
+  /* Prevent bottom nav from obscuring content on mobile (except in theater watch mode) */
+  .app-layout:not(.watch-mode) {
+    padding-bottom: calc(72px + env(safe-area-inset-bottom, 14px));
+  }
+
+  /* Thumb-friendly 48px touch targets for mobile */
   button, a, input, select {
-    min-height: 44px;
+    min-height: 48px;
+  }
+}
+
+/* 3-column tablet grid */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .catalog-cards-grid,
+  .mylist-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+}
+
+/* 2-column mobile grid */
+@media (max-width: 768px) {
+  .catalog-cards-grid,
+  .mylist-grid,
+  .search-results-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 12px !important;
   }
 }
 
