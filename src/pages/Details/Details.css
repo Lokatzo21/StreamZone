@@ -343,8 +343,10 @@
   gap: 16px;
   overflow-x: auto;
   scroll-behavior: smooth;
-  padding-bottom: 12px;
+  padding: 12px 6px 14px 6px;
+  margin-top: -6px;
   scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
 }
 
 .cast-grid-track::-webkit-scrollbar {
@@ -361,11 +363,13 @@
   text-align: center;
   border-radius: 12px;
   box-sizing: border-box;
-  transition: transform var(--transition-fast);
+  transition: transform var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .cast-card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-3px);
+  border-color: rgba(255, 107, 0, 0.4);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.65);
 }
 
 .cast-avatar-wrap {

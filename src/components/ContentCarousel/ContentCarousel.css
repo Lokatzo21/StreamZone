@@ -76,17 +76,6 @@
   scroll-snap-align: start;
 }
 
-/* Edge Hover Alignment: Prevent clipping on start and end */
-.carousel-card-item:first-child .content-card,
-.carousel-card-item:first-child .card-media-wrapper {
-  transform-origin: left center !important;
-}
-
-.carousel-card-item:last-child .content-card,
-.carousel-card-item:last-child .card-media-wrapper {
-  transform-origin: right center !important;
-}
-
 /* Arrow buttons */
 .carousel-arrow-btn {
   position: absolute;

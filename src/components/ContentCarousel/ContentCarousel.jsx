@@ -23,8 +23,8 @@ const ContentCarousel = ({
   const checkScroll = () => {
     if (scrollRef.current) {
       const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
-      setCanScrollLeft(scrollLeft > 35);
-      setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 35);
+      setCanScrollLeft(scrollLeft > 55);
+      setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 55);
     }
   };
 

@@ -1,8 +1,16 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { ArrowUp } from 'lucide-react';
 import './Footer.css';
 
 const Footer = () => {
+  const handleScrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  };
+
   return (
     <footer className="stream-footer">
       <div className="footer-container">
@@ -32,6 +40,17 @@ const Footer = () => {
           <p className="footer-copyright">
             © {new Date().getFullYear()} Streamzona. Diseñado con arquitectura de alto rendimiento.
           </p>
+
+          <button
+            type="button"
+            className="footer-scroll-top-btn"
+            onClick={handleScrollToTop}
+            aria-label="Volver arriba"
+            title="Volver arriba"
+          >
+            <span>Volver arriba</span>
+            <ArrowUp size={16} />
+          </button>
         </div>
       </div>
     </footer>

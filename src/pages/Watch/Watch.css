@@ -510,8 +510,40 @@
   .watch-page-container {
     padding: 76px 14px 20px 14px;
   }
+  .watch-top-navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .back-to-details-btn {
+    padding: 8px 10px;
+    min-width: 38px;
+    min-height: 38px;
+    justify-content: center;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .back-to-details-btn span {
+    display: none; /* Icon-only arrow on mobile to prevent line wrapping */
+  }
+  .watch-title-breadcrumbs {
+    flex: 1;
+    min-width: 0;
+    font-size: 0.82rem;
+    overflow: hidden;
+    white-space: nowrap;
+    gap: 6px;
+  }
   .crumb-title {
-    max-width: 120px;
+    max-width: 90px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .crumb-ep {
+    max-width: 130px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
