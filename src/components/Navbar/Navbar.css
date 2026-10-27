@@ -670,27 +670,37 @@
   }
 
   .navbar-container {
-    padding: 0 16px;
+    padding: 0 14px;
   }
 
   /* Show mobile hamburger on left */
   .mobile-hamburger-btn {
     display: flex;
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
   }
 
   .navbar-left {
-    gap: 12px;
+    gap: 8px;
   }
 
   .navbar-logo {
-    font-size: 1.45rem;
+    font-size: 1.35rem;
+    letter-spacing: -0.3px;
   }
 
-  /* Mobile search trigger transforms from wide input into circular/icon button */
+  .navbar-right {
+    gap: 8px;
+  }
+
+  /* Mobile search trigger transforms from wide input into circular icon button */
   .nav-icon-btn.search-btn {
-    min-width: 48px;
-    width: 48px;
-    height: 48px;
+    min-width: 44px;
+    width: 44px;
+    height: 44px;
+    min-height: 44px;
     padding: 0;
     justify-content: center;
     border-radius: 50%;
@@ -708,16 +718,44 @@
   }
 
   .profile-btn {
-    padding: 4px;
-    min-width: 48px;
-    min-height: 48px;
+    padding: 2px;
+    min-width: 44px;
+    min-height: 44px;
+    width: 44px;
+    height: 44px;
     justify-content: center;
     border-radius: 50%;
   }
 
+  /* Guest Login button: Transforms to sleek circular action button matching avatar size */
   .btn-nav-login {
-    padding: 8px 14px;
-    font-size: 0.85rem;
-    min-height: 48px;
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0;
+    border-radius: 50%;
+    justify-content: center;
+    box-shadow: 0 2px 12px rgba(255, 107, 0, 0.45);
+  }
+
+  .btn-nav-login span {
+    display: none;
+  }
+
+  .btn-nav-login svg {
+    margin: 0;
+  }
+}
+
+@media (max-width: 380px) {
+  .navbar-container {
+    padding: 0 8px;
+  }
+  .navbar-logo {
+    font-size: 1.22rem;
+  }
+  .navbar-right {
+    gap: 6px;
   }
 }

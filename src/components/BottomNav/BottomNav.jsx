@@ -37,7 +37,6 @@ const BottomNav = ({ onOpenSearch }) => {
             <Home size={22} />
           </div>
           <span className="bottom-nav-label">Inicio</span>
-          {currentPath === '/' && <div className="bottom-nav-indicator" />}
         </Link>
 
         {/* Tab 2: Explorar Catálogo */}
@@ -50,7 +49,6 @@ const BottomNav = ({ onOpenSearch }) => {
             <Compass size={22} />
           </div>
           <span className="bottom-nav-label">Explorar</span>
-          {currentPath === '/catalog' && <div className="bottom-nav-indicator" />}
         </Link>
 
         {/* Tab 3: Buscar (Abre Fullscreen Search) */}
@@ -76,9 +74,6 @@ const BottomNav = ({ onOpenSearch }) => {
             <Bookmark size={22} />
           </div>
           <span className="bottom-nav-label">Mi Espacio</span>
-          {(currentPath === '/my-list' || currentPath === '/favorites') && (
-            <div className="bottom-nav-indicator" />
-          )}
         </Link>
 
         {/* Tab 5: Cuenta / Perfil */}
@@ -100,7 +95,6 @@ const BottomNav = ({ onOpenSearch }) => {
             )}
           </div>
           <span className="bottom-nav-label">{user ? (activeProfile?.name || 'Perfil') : 'Acceder'}</span>
-          {currentPath === '/login' && <div className="bottom-nav-indicator" />}
         </button>
       </div>
     </nav>

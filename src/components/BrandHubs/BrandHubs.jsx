@@ -7,7 +7,7 @@ const HUBS = [
   {
     id: 'peliculas_hub',
     title: 'Películas',
-    subtitle: 'Éxitos de taquilla y cine',
+    subtitle: 'Taquilla y Estrenos',
     bgImage: 'https://image.tmdb.org/t/p/w780/m0eJc9CwCy5nowYQdNEaxkHHmj4.jpg',
     gradient: 'linear-gradient(135deg, rgba(229, 9, 20, 0.5) 0%, rgba(13, 17, 30, 0.95) 100%)',
     borderGlow: 'rgba(229, 9, 20, 0.45)',
@@ -17,7 +17,7 @@ const HUBS = [
   {
     id: 'series_hub',
     title: 'Series',
-    subtitle: 'Temporadas y estrenos',
+    subtitle: 'Temporadas y Episodios',
     bgImage: 'https://image.tmdb.org/t/p/w780/uTWhbLc7Bj4qNSdW3ZvZKL8cOHv.jpg',
     gradient: 'linear-gradient(135deg, rgba(99, 102, 241, 0.5) 0%, rgba(13, 17, 30, 0.95) 100%)',
     borderGlow: 'rgba(99, 102, 241, 0.45)',
@@ -27,7 +27,7 @@ const HUBS = [
   {
     id: 'anime_hub',
     title: 'Anime',
-    subtitle: 'Simulcasts y animación',
+    subtitle: 'Simulcast y Animación',
     bgImage: 'https://image.tmdb.org/t/p/w780/89qSKhLrJOUhp6xgbqgSTpzblbA.jpg',
     gradient: 'linear-gradient(135deg, rgba(255, 107, 0, 0.5) 0%, rgba(13, 17, 30, 0.95) 100%)',
     borderGlow: 'rgba(255, 107, 0, 0.5)',
@@ -36,8 +36,8 @@ const HUBS = [
   },
   {
     id: 'sagas_hub',
-    title: 'Sagas y Franquicias',
-    subtitle: 'Universos cinematográficos',
+    title: 'Sagas',
+    subtitle: 'Franquicias y Universos',
     bgImage: 'https://image.tmdb.org/t/p/w780/1RgPyOhN4DRs225BGTlHJqCudII.jpg',
     gradient: 'linear-gradient(135deg, rgba(16, 185, 129, 0.5) 0%, rgba(13, 17, 30, 0.95) 100%)',
     borderGlow: 'rgba(16, 185, 129, 0.45)',

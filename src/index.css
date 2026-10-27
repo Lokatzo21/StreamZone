@@ -292,9 +292,29 @@ a {
     padding-bottom: calc(72px + env(safe-area-inset-bottom, 14px));
   }
 
-  /* Thumb-friendly 48px touch targets for mobile */
-  button, a, input, select {
+  /* Thumb-friendly touch targets for mobile interactive components */
+  .btn-primary,
+  .btn-secondary,
+  .btn-accent,
+  .nav-icon-btn,
+  .mobile-hamburger-btn,
+  .sidebar-nav-item,
+  .sidebar-logout-btn,
+  .sidebar-full-login-btn,
+  .sidebar-close-btn,
+  .bottom-nav-item,
+  .tab-btn,
+  .tag-pill,
+  .search-filter-pill,
+  .clear-all-history-btn,
+  .custom-list-chip {
     min-height: 48px;
+  }
+
+  /* Protect slider/carousel indicator dots from being stretched */
+  .indicator-dot {
+    min-height: 4px !important;
+    height: 4px !important;
   }
 }
 

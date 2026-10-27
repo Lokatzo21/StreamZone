@@ -134,12 +134,16 @@
 
 @media (max-width: 768px) {
   .brand-hubs-section {
-    padding: 0 20px;
-    margin: 20px auto 32px auto;
+    padding: 0 16px;
+    margin: 18px auto 30px auto;
   }
   .brand-hubs-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
+    gap: 10px;
+  }
+  /* The 5th item "Aclamadas" spans across both columns on mobile as a wide banner */
+  .brand-hubs-grid > .brand-hub-card:last-child {
+    grid-column: span 2;
   }
 }
 
@@ -149,18 +153,30 @@
     gap: 10px;
   }
   .brand-hub-card {
-    min-height: 72px;
-    padding: 14px 12px;
+    min-height: 68px;
+    padding: 12px 12px;
+    border-radius: 14px;
   }
   .hub-icon-wrap {
     width: 36px;
     height: 36px;
+    border-radius: 10px;
+    flex-shrink: 0;
+  }
+  .hub-content {
+    gap: 10px;
   }
   .hub-title {
     font-size: 0.95rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .hub-subtitle {
     font-size: 0.72rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }
 

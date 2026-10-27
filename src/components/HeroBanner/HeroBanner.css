@@ -210,10 +210,15 @@
 
 .indicator-dot {
   width: 28px;
-  height: 4px;
+  height: 4px !important;
+  min-height: 4px !important;
+  max-height: 4px !important;
+  padding: 0 !important;
+  border: none !important;
   border-radius: 2px;
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.28);
   transition: all var(--transition-smooth);
+  cursor: pointer;
 }
 
 .indicator-dot.active {
@@ -224,12 +229,12 @@
 
 @media (max-width: 768px) {
   .hero-banner {
-    min-height: 60vh;
-    height: 68vh;
-    max-height: 580px;
+    min-height: 560px;
+    height: 72vh;
+    max-height: 620px;
   }
   .hero-content-wrapper {
-    padding: 0 20px;
+    padding: 0 20px 30px 20px;
     margin-top: 60px;
   }
   .hero-title {
@@ -254,8 +259,22 @@
     height: 44px;
   }
   .hero-indicators {
-    right: 20px;
-    bottom: 16px;
+    left: 50%;
+    right: auto;
+    bottom: 12px;
+    transform: translateX(-50%);
+    gap: 6px;
+  }
+  .indicator-dot {
+    width: 14px;
+    height: 4px !important;
+    min-height: 4px !important;
+    max-height: 4px !important;
+    padding: 0 !important;
+    border: none !important;
+  }
+  .indicator-dot.active {
+    width: 28px;
   }
 }
 
