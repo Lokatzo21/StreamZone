@@ -41,13 +41,14 @@
 /* Sticky Filters Bar */
 .catalog-filters-sticky-bar {
   position: sticky;
-  top: 72px;
+  top: var(--current-navbar-offset, 76px);
   z-index: 100;
-  background: rgba(6, 8, 15, 0.92);
+  background: rgba(6, 8, 15, 0.94);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
   border-bottom: 1px solid var(--border-subtle);
   padding: 16px 48px;
+  transition: top 0.28s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .catalog-filters-container {
@@ -226,10 +227,10 @@
     line-height: 1.45;
   }
 
-  /* Sticky filters bar on mobile */
+  /* Sticky filters bar on mobile - synchronized with Smart Navbar height */
   .catalog-filters-sticky-bar {
     position: sticky;
-    top: 0;
+    top: var(--current-navbar-offset, 64px);
     z-index: 150;
     padding: 10px 14px 12px 14px;
     background: rgba(6, 8, 15, 0.96);
@@ -238,6 +239,7 @@
     border-bottom: 1px solid var(--border-subtle);
     width: 100%;
     box-sizing: border-box;
+    transition: top 0.28s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .catalog-filters-container {

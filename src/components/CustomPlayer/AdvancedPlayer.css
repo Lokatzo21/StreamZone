@@ -685,28 +685,291 @@
   background: var(--accent-primary);
 }
 
+/* ==========================================================================
+   Gesture Surface, Central Play Button & Double Tap Ripple Seeking
+   ========================================================================== */
+.player-gesture-surface {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* Double-Tap Seeking Ripple (YouTube / Netflix Style) */
+.player-double-tap-ripple {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 44%;
+  z-index: 22;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.player-double-tap-ripple.left {
+  left: 0;
+  border-radius: 0 100px 100px 0;
+  background: radial-gradient(ellipse at 0% 50%, rgba(255, 107, 0, 0.28) 0%, rgba(255, 255, 255, 0.12) 45%, transparent 75%);
+}
+
+.player-double-tap-ripple.right {
+  right: 0;
+  border-radius: 100px 0 0 100px;
+  background: radial-gradient(ellipse at 100% 50%, rgba(255, 107, 0, 0.28) 0%, rgba(255, 255, 255, 0.12) 45%, transparent 75%);
+}
+
+.ripple-wave-circle {
+  position: absolute;
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  animation: ripplePulse 0.6s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+@keyframes ripplePulse {
+  0% { transform: scale(0.6); opacity: 0.9; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
+.ripple-badge {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  color: #fff;
+  filter: drop-shadow(0 2px 10px rgba(0, 0, 0, 0.8));
+}
+
+.ripple-icon {
+  animation: rippleIconBounce 0.45s ease infinite alternate;
+}
+
+@keyframes rippleIconBounce {
+  0% { transform: scale(0.92); }
+  100% { transform: scale(1.15); }
+}
+
+.ripple-seconds-text {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  color: #fff;
+}
+
+/* Central Play/Pause Action Button */
+.player-center-play-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 15;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.player-center-play-overlay.visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: scale(1);
+}
+
+.player-center-play-overlay.hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.85);
+}
+
+.player-center-action-btn {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: rgba(10, 14, 25, 0.78);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8), 0 0 25px var(--accent-glow);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.player-center-action-btn:hover {
+  transform: scale(1.12);
+  background: rgba(255, 107, 0, 0.95);
+  border-color: #fff;
+  box-shadow: 0 10px 40px rgba(255, 107, 0, 0.65);
+}
+
+.player-center-action-btn:active {
+  transform: scale(0.94);
+}
+
+/* Scrubber Dedicated Time Row (Desktop hidden, mobile revealed) */
+.player-scrubber-time-row {
+  display: none;
+}
+
+/* ==========================================================================
+   Mobile-First Player Calibration (POCO M6 Pro 5G / Responsive Mobile)
+   ========================================================================== */
 @media (max-width: 768px) {
   .advanced-player-container {
     border-radius: 0;
   }
-  .volume-slider-input {
-    display: none;
-  }
+
+  /* Safe Area Insets for Notch / Camera Cutout */
   .player-top-bar {
-    padding: 14px 16px;
+    padding: max(12px, env(safe-area-inset-top, 12px)) max(14px, env(safe-area-inset-right, 14px)) 10px max(14px, env(safe-area-inset-left, 14px));
   }
+
   .player-bottom-controls {
-    padding: 8px 16px 14px 16px;
+    padding: 8px max(14px, env(safe-area-inset-right, 14px)) max(12px, env(safe-area-inset-bottom, 12px)) max(14px, env(safe-area-inset-left, 14px));
+    background: linear-gradient(0deg, rgba(4, 6, 12, 0.96) 0%, rgba(4, 6, 12, 0.75) 60%, transparent 100%);
   }
-  .controls-group-left, .controls-group-right {
+
+  /* Reveal dedicated Scrubber Time Row on Mobile */
+  .player-scrubber-time-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    margin-bottom: 2px;
+    padding: 0 2px;
+    font-family: var(--font-display);
+    font-size: 0.8rem;
+    font-weight: 700;
+  }
+
+  .scrubber-time-current {
+    color: #ffffff;
+  }
+
+  .scrubber-time-total {
+    color: var(--text-secondary);
+  }
+
+  /* Thicker, thumb-friendly Scrubber */
+  .player-scrubber-wrapper {
+    height: 28px;
+    padding: 6px 0;
+  }
+
+  .scrubber-track-background {
+    height: 7px;
+    border-radius: 4px;
+  }
+
+  .scrubber-handle-thumb {
+    width: 18px;
+    height: 18px;
+    opacity: 1 !important; /* Always visible on mobile for easy thumb tracking */
+    background: #fff;
+    box-shadow: 0 0 10px rgba(255, 107, 0, 0.8), 0 2px 6px rgba(0, 0, 0, 0.7);
+    border: 2px solid var(--accent-primary);
+  }
+
+  .scrubber-range-input {
+    height: 38px;
+  }
+
+  /* Controls Row: Clean, uncluttered layout */
+  .player-controls-row {
+    margin-top: 4px;
+  }
+
+  /* Hide desktop-only cluttered buttons on mobile */
+  .desktop-only-btn {
+    display: none !important;
+  }
+
+  .desktop-time-display {
+    display: none !important;
+  }
+
+  .volume-control-wrap {
+    display: none !important;
+  }
+
+  .controls-group-left,
+  .controls-group-right {
     gap: 8px;
   }
+
+  .control-btn {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
+    border-radius: 50%;
+  }
+
+  .control-btn:active {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(0.92);
+  }
+
+  /* Mobile popovers positioned safely to prevent cut-offs */
+  .player-settings-dropdown {
+    position: fixed;
+    bottom: calc(64px + env(safe-area-inset-bottom, 10px));
+    right: 14px;
+    left: auto;
+    width: min(220px, 86vw);
+    max-height: 55vh;
+    overflow-y: auto;
+    z-index: 100;
+  }
+
+  .player-servers-dropdown {
+    position: fixed;
+    top: calc(60px + env(safe-area-inset-top, 10px));
+    right: 14px;
+    left: auto;
+    width: min(290px, 88vw);
+    max-height: 60vh;
+    overflow-y: auto;
+    z-index: 100;
+  }
+
+  /* Floating skip intro button */
   .floating-skip-btn {
     right: 16px;
-    bottom: 70px;
-    padding: 8px 16px;
-    font-size: 0.85rem;
+    bottom: 84px;
+    padding: 9px 18px;
+    font-size: 0.86rem;
+    min-height: 44px;
   }
+
+  .player-center-action-btn {
+    width: 64px;
+    height: 64px;
+  }
+}
+
+/* Fullscreen safe area calibration */
+.advanced-player-container.fullscreen .player-top-bar {
+  padding-top: max(18px, env(safe-area-inset-top, 18px));
+  padding-left: max(24px, env(safe-area-inset-left, 24px));
+  padding-right: max(24px, env(safe-area-inset-right, 24px));
+}
+
+.advanced-player-container.fullscreen .player-bottom-controls {
+  padding-bottom: max(20px, env(safe-area-inset-bottom, 20px));
+  padding-left: max(24px, env(safe-area-inset-left, 24px));
+  padding-right: max(24px, env(safe-area-inset-right, 24px));
 }
 
 /* ==========================================================================

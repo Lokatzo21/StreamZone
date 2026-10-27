@@ -53,6 +53,12 @@ const AdvancedPlayer = ({
   const [isBuffering, setIsBuffering] = useState(false);
   const [controlsVisible, setControlsVisible] = useState(true);
 
+  // Mobile Touch Gestures & Ripple Animations (YouTube/Netflix style)
+  const [doubleTapFeedback, setDoubleTapFeedback] = useState(null); // { side: 'left' | 'right', amount: number }
+  const tapTimeoutRef = useRef(null);
+  const feedbackTimeoutRef = useRef(null);
+  const lastTapRef = useRef({ time: 0, x: 0 });
+
   // Modals & Popovers
   const [showSettingsMenu, setShowSettingsMenu] = useState(false);
   const [showServerMenu, setShowServerMenu] = useState(false);
@@ -366,6 +372,13 @@ const AdvancedPlayer = ({
         document.msFullscreenElement
       );
       setIsFullscreen(isCurrentlyFullscreen);
+
+      // Unlock screen orientation when leaving fullscreen
+      if (!isCurrentlyFullscreen && window.screen?.orientation?.unlock) {
+        try {
+          window.screen.orientation.unlock();
+        } catch (err) {}
+      }
     };
 
     document.addEventListener('fullscreenchange', handleFullscreenChange);
@@ -424,6 +437,73 @@ const AdvancedPlayer = ({
     triggerControls();
   };
 
+  // Trigger YouTube/Netflix style double-tap feedback ripple
+  const triggerDoubleTapRipple = useCallback((side) => {
+    setDoubleTapFeedback((prev) => {
+      const isSameSide = prev?.side === side;
+      return {
+        side,
+        amount: isSameSide ? prev.amount + 10 : 10
+      };
+    });
+
+    if (feedbackTimeoutRef.current) {
+      clearTimeout(feedbackTimeoutRef.current);
+    }
+    feedbackTimeoutRef.current = setTimeout(() => {
+      setDoubleTapFeedback(null);
+    }, 650);
+
+    triggerControls();
+  }, [triggerControls]);
+
+  // Touch gesture & surface click handler: distinguishes single tap vs double-tap seek
+  const handlePlayerSurfaceTap = (e) => {
+    if (!hasStarted) return;
+    const container = containerRef.current;
+    if (!container) return;
+
+    const rect = container.getBoundingClientRect();
+    const clientX = e.clientX ?? (e.changedTouches && e.changedTouches[0]?.clientX) ?? 0;
+    const relativeX = (clientX - rect.left) / rect.width;
+    const now = Date.now();
+    const timeSinceLast = now - lastTapRef.current.time;
+
+    if (timeSinceLast > 0 && timeSinceLast < 320) {
+      // Double tap detected! Clear pending single tap timeout
+      if (tapTimeoutRef.current) {
+        clearTimeout(tapTimeoutRef.current);
+        tapTimeoutRef.current = null;
+      }
+
+      if (relativeX < 0.40) {
+        // Left 40%: Seek -10s
+        seekDelta(-10);
+        triggerDoubleTapRipple('left');
+      } else if (relativeX > 0.60) {
+        // Right 40%: Seek +10s
+        seekDelta(10);
+        triggerDoubleTapRipple('right');
+      } else {
+        // Center: Toggle Play/Pause
+        togglePlay();
+      }
+
+      lastTapRef.current = { time: 0, x: 0 };
+    } else {
+      // Single tap candidate
+      lastTapRef.current = { time: now, x: clientX };
+      tapTimeoutRef.current = setTimeout(() => {
+        setControlsVisible((prev) => {
+          const next = !prev;
+          if (next) triggerControls();
+          return next;
+        });
+        tapTimeoutRef.current = null;
+      }, 260);
+    }
+  };
+
   const handleScrubberChange = (e) => {
     const video = videoRef.current;
     if (!video || !duration) return;
@@ -454,16 +534,35 @@ const AdvancedPlayer = ({
     );
 
     if (!isFs) {
-      if (container.requestFullscreen) {
-        container.requestFullscreen().catch(() => {});
-      } else if (container.webkitRequestFullscreen) {
-        container.webkitRequestFullscreen();
-      } else if (container.mozRequestFullScreen) {
-        container.mozRequestFullScreen();
-      } else if (container.msRequestFullscreen) {
-        container.msRequestFullscreen();
+      const enterPromise = container.requestFullscreen
+        ? container.requestFullscreen()
+        : container.webkitRequestFullscreen
+        ? container.webkitRequestFullscreen()
+        : container.mozRequestFullScreen
+        ? container.mozRequestFullScreen()
+        : container.msRequestFullscreen
+        ? container.msRequestFullscreen()
+        : null;
+
+      if (enterPromise && enterPromise.then) {
+        enterPromise.then(() => {
+          // Attempt mobile landscape lock for optimal viewing
+          if (window.screen?.orientation?.lock) {
+            window.screen.orientation.lock('landscape').catch(() => {});
+          }
+        }).catch(() => {});
+      } else {
+        if (window.screen?.orientation?.lock) {
+          window.screen.orientation.lock('landscape').catch(() => {});
+        }
       }
     } else {
+      if (window.screen?.orientation?.unlock) {
+        try {
+          window.screen.orientation.unlock();
+        } catch (err) {}
+      }
+
       if (document.exitFullscreen) {
         document.exitFullscreen().catch(() => {});
       } else if (document.webkitExitFullscreen) {
@@ -508,7 +607,6 @@ const AdvancedPlayer = ({
       ref={containerRef}
       className={`advanced-player-container ${controlsVisible ? 'controls-active' : 'controls-hidden'} ${isFullscreen ? 'fullscreen' : ''} ${cleanViewMode ? 'clean-view-mode-active' : ''}`}
       onMouseMove={triggerControls}
-      onClick={triggerControls}
     >
       {/* Video Engine: Native Video Player for MP4 / HLS */}
       {isDirectVideo ? (
@@ -528,7 +626,6 @@ const AdvancedPlayer = ({
           onEnded={() => {
             if (hasNextEpisode && onNextEpisode) onNextEpisode();
           }}
-          onClick={togglePlay}
         />
       ) : (
         /* Embed fallback for external provider iframes */
@@ -539,6 +636,58 @@ const AdvancedPlayer = ({
           allowFullScreen
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         />
+      )}
+
+      {/* Transparent Gesture Layer: Single tap toggles UI, Double tap left/right seeks ±10s */}
+      {isDirectVideo && hasStarted && (
+        <div
+          className="player-gesture-surface"
+          onClick={handlePlayerSurfaceTap}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Double-Tap Seeking Ripple Overlay (YouTube/Netflix Style) */}
+      {doubleTapFeedback && (
+        <div className={`player-double-tap-ripple ${doubleTapFeedback.side} fade-in`}>
+          <div className="ripple-wave-circle" />
+          <div className="ripple-badge">
+            {doubleTapFeedback.side === 'left' ? (
+              <RotateCcw size={32} className="ripple-icon" />
+            ) : (
+              <RotateCw size={32} className="ripple-icon" />
+            )}
+            <span className="ripple-seconds-text">
+              {doubleTapFeedback.side === 'left' ? `-${doubleTapFeedback.amount}s` : `+${doubleTapFeedback.amount}s`}
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Central Play/Pause Action Button Overlay (Mobile & Desktop) */}
+      {isDirectVideo && hasStarted && (
+        <div
+          className={`player-center-play-overlay ${controlsVisible || !isPlaying ? 'visible' : 'hidden'}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            togglePlay();
+          }}
+        >
+          <button
+            className="player-center-action-btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              togglePlay();
+            }}
+            aria-label={isPlaying ? 'Pausar' : 'Reproducir'}
+          >
+            {isPlaying ? (
+              <Pause size={38} fill="#ffffff" color="#ffffff" />
+            ) : (
+              <Play size={38} fill="#ffffff" color="#ffffff" style={{ marginLeft: 4 }} />
+            )}
+          </button>
+        </div>
       )}
 
       {/* Initial Cover / Poster Image Overlay before playback starts */}
@@ -702,6 +851,12 @@ const AdvancedPlayer = ({
       {/* Bottom Custom Controls Bar */}
       {isDirectVideo && (
         <div className="player-bottom-controls" onClick={e => e.stopPropagation()}>
+          {/* Mobile-First Dedicated Time Row above Scrubber (Left: current, Right: total) */}
+          <div className="player-scrubber-time-row">
+            <span className="scrubber-time-current">{formatTime(currentTime)}</span>
+            <span className="scrubber-time-total">{formatTime(duration)}</span>
+          </div>
+
           {/* Custom Timeline Scrubber */}
           <div
             className="player-scrubber-wrapper"
@@ -747,10 +902,10 @@ const AdvancedPlayer = ({
 
           {/* Action Icons Row */}
           <div className="player-controls-row">
-            {/* Left Controls: Play, Rewind, Fast Forward, Volume */}
+            {/* Left Controls: Desktop Buttons, Volume, Episode Navigation */}
             <div className="controls-group-left">
               <button
-                className="control-btn play-pause-btn"
+                className="control-btn play-pause-btn desktop-only-btn"
                 onClick={togglePlay}
                 aria-label={isPlaying ? 'Pausar' : 'Reproducir'}
               >
@@ -758,7 +913,7 @@ const AdvancedPlayer = ({
               </button>
 
               <button
-                className="control-btn seek-btn"
+                className="control-btn seek-btn desktop-only-btn"
                 onClick={() => seekDelta(-10)}
                 aria-label="Retroceder 10 segundos"
                 title="Retroceder 10s"
@@ -767,7 +922,7 @@ const AdvancedPlayer = ({
               </button>
 
               <button
-                className="control-btn seek-btn"
+                className="control-btn seek-btn desktop-only-btn"
                 onClick={() => seekDelta(10)}
                 aria-label="Adelantar 10 segundos"
                 title="Adelantar 10s"
@@ -775,7 +930,7 @@ const AdvancedPlayer = ({
                 <RotateCw size={20} />
               </button>
 
-              {/* Volume Slider */}
+              {/* Volume Slider (Hidden on Mobile) */}
               <div className="volume-control-wrap">
                 <button
                   className="control-btn volume-btn"
@@ -799,19 +954,17 @@ const AdvancedPlayer = ({
                 />
               </div>
 
-              {/* Time Display */}
-              <div className="player-time-display">
+              {/* Time Display (Visible on Desktop) */}
+              <div className="player-time-display desktop-time-display">
                 <span className="current-time">{formatTime(currentTime)}</span>
                 <span className="time-separator">/</span>
                 <span className="total-duration">{formatTime(duration)}</span>
               </div>
-            </div>
 
-            {/* Right Controls: Previous Ep, Next Ep, Speed/Settings, Fullscreen */}
-            <div className="controls-group-right">
+              {/* Previous Episode Navigation */}
               {hasPrevEpisode && (
                 <button
-                  className="control-btn"
+                  className="control-btn ep-nav-btn"
                   onClick={onPrevEpisode}
                   aria-label="Episodio anterior"
                   title="Episodio Anterior"
@@ -820,9 +973,10 @@ const AdvancedPlayer = ({
                 </button>
               )}
 
+              {/* Next Episode Navigation */}
               {hasNextEpisode && (
                 <button
-                  className="control-btn"
+                  className="control-btn ep-nav-btn"
                   onClick={onNextEpisode}
                   aria-label="Siguiente episodio"
                   title="Siguiente Episodio"
@@ -830,7 +984,10 @@ const AdvancedPlayer = ({
                   <SkipForward size={20} />
                 </button>
               )}
+            </div>
 
+            {/* Right Controls: Settings, Clean View, Fullscreen */}
+            <div className="controls-group-right">
               {/* Settings / Speed Popover Trigger */}
               <div className="settings-menu-wrapper">
                 <button

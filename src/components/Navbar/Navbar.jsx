@@ -62,6 +62,12 @@ const Navbar = ({ onOpenSearch }) => {
     let ticking = false;
     let prevScrollY = window.scrollY;
 
+    const updateNavbarOffset = (visible) => {
+      const isMobile = window.innerWidth <= 768;
+      const height = visible ? (isMobile ? '64px' : '76px') : '0px';
+      document.documentElement.style.setProperty('--current-navbar-offset', height);
+    };
+
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
       if (!ticking) {
@@ -71,14 +77,17 @@ const Navbar = ({ onOpenSearch }) => {
           // Top of the page: always visible
           if (currentScrollY <= 40) {
             setShowHeader(true);
+            updateNavbarOffset(true);
           }
           // Scrolled down past threshold: hide
           else if (currentScrollY > prevScrollY + 8 && currentScrollY > 70) {
             setShowHeader(false);
+            updateNavbarOffset(false);
           }
           // Scrolled up: show
           else if (currentScrollY < prevScrollY - 8) {
             setShowHeader(true);
+            updateNavbarOffset(true);
           }
 
           prevScrollY = currentScrollY;
@@ -88,9 +97,16 @@ const Navbar = ({ onOpenSearch }) => {
       }
     };
 
+    // Initialize initial offset
+    updateNavbarOffset(true);
+
     window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+    window.addEventListener('resize', () => updateNavbarOffset(showHeader), { passive: true });
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', () => updateNavbarOffset(showHeader));
+    };
+  }, [showHeader]);
 
   // Close desktop profile dropdown when clicking outside
   useEffect(() => {
