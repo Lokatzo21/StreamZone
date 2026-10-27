@@ -1361,7 +1361,7 @@ export const api = {
 
           const sName = (lat.server_name || 'Servidor').toUpperCase();
           const isDirectMp4 = (lat.video_url || '').includes('.mp4') || sName.includes('RUMBLE') || sName.includes('ARCHIVE');
-          const isHls = (lat.video_url || '').includes('.m3u8');
+          const isHls = (lat.video_url || '').includes('.m3u8') || (lat.video_url || '').includes('streamproxy') || (lat.video_url || '').includes('.p3x8') || sName.includes('ARCANDO');
 
           return {
             name: lat.server_name || 'Servidor',

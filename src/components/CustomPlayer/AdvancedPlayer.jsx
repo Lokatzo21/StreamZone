@@ -69,14 +69,25 @@ const AdvancedPlayer = ({
   const [hoverPosition, setHoverPosition] = useState(null);
   const [hoverTime, setHoverTime] = useState(0);
 
-  // Check if current server is a direct playable video URL (MP4 / HLS / Rumble / Archive)
+  // Check if current server is a direct playable video URL (MP4 / HLS / Rumble / Archive / Arcando)
   const isDirectVideo = Boolean(
     activeServer?.url && (
       activeServer.url.includes('.mp4') ||
       activeServer.url.includes('.m3u8') ||
+      activeServer.url.includes('streamproxy') ||
+      activeServer.url.includes('.p3x8') ||
+      (activeServer.name && /arcando/i.test(activeServer.name)) ||
       activeServer.isDirectMp4 ||
       activeServer.isHls
     )
+  );
+
+  // Check if current stream is a 24/7 live transmission (never seek/resume to past chunks)
+  const isLiveStream = Boolean(
+    (animeInfo?.title && /24\/7|en vivo/i.test(animeInfo.title)) ||
+    (episodeInfo?.title && /24\/7|en vivo/i.test(episodeInfo.title)) ||
+    (activeServer?.url && /streamproxy|\.p3x8|arcando/i.test(activeServer.url)) ||
+    (activeServer?.name && /arcando/i.test(activeServer.name))
   );
 
   // Poster / Cover art URL for initial state
@@ -87,8 +98,13 @@ const AdvancedPlayer = ({
     setHasStarted(false);
   }, [animeInfo?.id, episodeInfo?.id]);
 
-  // Resume timestamp check
+  // Resume timestamp check (skip for live 24/7 streams)
   useEffect(() => {
+    if (isLiveStream) {
+      setShowResumePrompt(false);
+      setSavedResumeTime(0);
+      return;
+    }
     if (animeInfo?.id && episodeInfo?.id) {
       const prev = getEpisodeProgress(animeInfo.id, episodeInfo.season || 1, episodeInfo.id);
       if (prev && prev.currentTime > 15 && prev.percentage < 90) {
@@ -96,7 +112,7 @@ const AdvancedPlayer = ({
         setShowResumePrompt(true);
       }
     }
-  }, [animeInfo?.id, episodeInfo?.id]);
+  }, [animeInfo?.id, episodeInfo?.id, isLiveStream]);
 
   // Video source loading & HLS setup
   useEffect(() => {
@@ -111,13 +127,19 @@ const AdvancedPlayer = ({
       hlsRef.current = null;
     }
 
-    const isHlsStream = streamUrl.includes('.m3u8') || activeServer?.isHls;
+    const isHlsStream = streamUrl.includes('.m3u8') || 
+                        streamUrl.includes('streamproxy') || 
+                        streamUrl.includes('.p3x8') || 
+                        activeServer?.isHls;
 
     if (isHlsStream && Hls.isSupported()) {
       const hls = new Hls({
         maxBufferLength: 30,
         enableWorker: true,
-        lowLatencyMode: true
+        lowLatencyMode: isLiveStream ? false : true,
+        liveSyncDurationCount: 3,
+        liveMaxLatencyDurationCount: 10,
+        backBufferLength: 30
       });
       hlsRef.current = hls;
       hls.loadSource(streamUrl);
@@ -219,8 +241,8 @@ const AdvancedPlayer = ({
       setCountdownSeconds(null);
     }
 
-    // Periodically save watching progress
-    if (animeInfo && dur > 0) {
+    // Periodically save watching progress (skip if live stream)
+    if (!isLiveStream && animeInfo && dur > 0) {
       saveProgress({
         animeId: animeInfo.id,
         animeTitle: animeInfo.title,
