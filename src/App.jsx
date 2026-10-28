@@ -8,6 +8,7 @@ import ProfileModal from './components/ProfileModal/ProfileModal';
 import HiddenTitlesModal from './components/HiddenTitlesModal/HiddenTitlesModal';
 import AuthRequiredModal from './components/AuthRequiredModal/AuthRequiredModal';
 import ScrollToTop from './components/ScrollToTop/ScrollToTop';
+import ErrorBoundary from './components/ErrorBoundary';
 import { useDeviceDetect } from './hooks/useDeviceDetect';
 
 // Code Splitting via React.lazy for instant initial page loading & WPO
@@ -65,20 +66,22 @@ const AppContent = () => {
       <HiddenTitlesModal />
       <AuthRequiredModal />
 
-      {/* Application Routes with Code Splitting Suspense */}
-      <Suspense fallback={<RouteLoadingFallback />}>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/catalog" element={<Catalog />} />
-          <Route path="/anime/:id" element={<Details />} />
-          <Route path="/watch/:id/:episode" element={<Watch />} />
-          <Route path="/favorites" element={<MyList defaultTab="favorites" />} />
-          <Route path="/my-list" element={<MyList defaultTab="mylist" />} />
-          <Route path="/admin" element={<Admin />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="*" element={<Home />} />
-        </Routes>
-      </Suspense>
+      {/* Application Routes with Code Splitting Suspense & ErrorBoundary */}
+      <ErrorBoundary>
+        <Suspense fallback={<RouteLoadingFallback />}>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/catalog" element={<Catalog />} />
+            <Route path="/anime/:id" element={<Details />} />
+            <Route path="/watch/:id/:episode" element={<Watch />} />
+            <Route path="/favorites" element={<MyList defaultTab="favorites" />} />
+            <Route path="/my-list" element={<MyList defaultTab="mylist" />} />
+            <Route path="/admin" element={<Admin />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="*" element={<Home />} />
+          </Routes>
+        </Suspense>
+      </ErrorBoundary>
 
       {/* Hide footer in theater mode for clean full-screen viewing */}
       {!isWatchPage && <Footer />}

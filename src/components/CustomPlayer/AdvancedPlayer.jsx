@@ -347,6 +347,61 @@ const AdvancedPlayer = React.forwardRef(({
     };
   }, []);
 
+  // Fullscreen Toggle Handler (Safe for all vendors & orientations)
+  const toggleFullscreen = useCallback(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const isFs = Boolean(
+      document.fullscreenElement ||
+      document.webkitFullscreenElement ||
+      document.mozFullScreenElement ||
+      document.msFullscreenElement
+    );
+
+    if (!isFs) {
+      try {
+        const enterPromise = container.requestFullscreen
+          ? container.requestFullscreen()
+          : container.webkitRequestFullscreen
+          ? container.webkitRequestFullscreen()
+          : container.mozRequestFullScreen
+          ? container.mozRequestFullScreen()
+          : container.msRequestFullscreen
+          ? container.msRequestFullscreen()
+          : null;
+
+        if (enterPromise && typeof enterPromise.then === 'function') {
+          enterPromise.then(() => {
+            if (window.screen?.orientation?.lock) {
+              window.screen.orientation.lock('landscape').catch(() => {});
+            }
+          }).catch(() => {});
+        } else if (window.screen?.orientation?.lock) {
+          window.screen.orientation.lock('landscape').catch(() => {});
+        }
+      } catch (e) {}
+    } else {
+      try {
+        if (window.screen?.orientation?.unlock) {
+          try {
+            window.screen.orientation.unlock();
+          } catch (err) {}
+        }
+
+        if (document.exitFullscreen) {
+          document.exitFullscreen().catch(() => {});
+        } else if (document.webkitExitFullscreen) {
+          document.webkitExitFullscreen();
+        } else if (document.mozCancelFullScreen) {
+          document.mozCancelFullScreen();
+        } else if (document.msExitFullscreen) {
+          document.msExitFullscreen();
+        }
+      } catch (e) {}
+    }
+  }, []);
+
   // Video source loading & HLS setup
   useEffect(() => {
     const video = videoRef.current;
@@ -857,59 +912,6 @@ const AdvancedPlayer = React.forwardRef(({
     setHoverTime(clampedPos * duration);
   };
 
-  const toggleFullscreen = () => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    const isFs = Boolean(
-      document.fullscreenElement ||
-      document.webkitFullscreenElement ||
-      document.mozFullScreenElement ||
-      document.msFullscreenElement
-    );
-
-    if (!isFs) {
-      const enterPromise = container.requestFullscreen
-        ? container.requestFullscreen()
-        : container.webkitRequestFullscreen
-        ? container.webkitRequestFullscreen()
-        : container.mozRequestFullScreen
-        ? container.mozRequestFullScreen()
-        : container.msRequestFullscreen
-        ? container.msRequestFullscreen()
-        : null;
-
-      if (enterPromise && enterPromise.then) {
-        enterPromise.then(() => {
-          // Attempt mobile landscape lock for optimal viewing
-          if (window.screen?.orientation?.lock) {
-            window.screen.orientation.lock('landscape').catch(() => {});
-          }
-        }).catch(() => {});
-      } else {
-        if (window.screen?.orientation?.lock) {
-          window.screen.orientation.lock('landscape').catch(() => {});
-        }
-      }
-    } else {
-      if (window.screen?.orientation?.unlock) {
-        try {
-          window.screen.orientation.unlock();
-        } catch (err) {}
-      }
-
-      if (document.exitFullscreen) {
-        document.exitFullscreen().catch(() => {});
-      } else if (document.webkitExitFullscreen) {
-        document.webkitExitFullscreen();
-      } else if (document.mozCancelFullScreen) {
-        document.mozCancelFullScreen();
-      } else if (document.msExitFullscreen) {
-        document.msExitFullscreen();
-      }
-    }
-  };
-
   const handleSkipIntroClick = () => {
     const video = videoRef.current;
     if (video) {
@@ -1080,7 +1082,7 @@ const AdvancedPlayer = React.forwardRef(({
       )}
 
       {/* Initial Cover / Poster Image Overlay before playback starts */}
-      {!hasStarted && posterUrl && (
+      {!hasStarted && isDirectVideo && posterUrl && (
         <div
           className="player-initial-poster-overlay fade-in"
           onClick={togglePlay}

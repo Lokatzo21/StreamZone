@@ -17,6 +17,29 @@ const LANG_LABELS = {
   castellano: 'Español Castellano'
 };
 
+const isDirectStream = (s) => {
+  if (!s || !s.url) return false;
+  const u = String(s.url).toLowerCase();
+  const n = String(s.name || '').toLowerCase();
+  return (
+    u.includes('.mp4') ||
+    u.includes('.m3u8') ||
+    u.includes('streamproxy') ||
+    u.includes('.p3x8') ||
+    u.includes('rumble') ||
+    n.includes('arcando') ||
+    n.includes('cinebel') ||
+    n.includes('mediafire') ||
+    Boolean(s.isDirectMp4 || s.isHls)
+  );
+};
+
+const pickBestServer = (serverList) => {
+  if (!serverList || serverList.length === 0) return null;
+  const direct = serverList.filter(isDirectStream);
+  return direct.length > 0 ? direct[0] : serverList[0];
+};
+
 const Watch = () => {
   const { id, episode } = useParams();
   const [searchParams] = useSearchParams();
@@ -128,7 +151,8 @@ const Watch = () => {
           }
 
           const filtered = srvs.filter(s => s.lang === chosenLang);
-          setActiveServer(filtered.length > 0 ? filtered[0] : srvs[0]);
+          const best = pickBestServer(filtered.length > 0 ? filtered : srvs);
+          setActiveServer(best);
         } else if (isMounted) {
           setRawServers([]);
           setActiveServer(null);
@@ -143,15 +167,12 @@ const Watch = () => {
     return () => { isMounted = false; };
   }, [animeInfo, episodeNumber, querySeason]);
 
-  // When user switches language, filter servers
+  // When user switches language, filter servers (prioritizing direct playable streams)
   useEffect(() => {
     if (rawServers.length === 0) return;
     const filtered = rawServers.filter(s => s.lang === selectedLanguage);
-    if (filtered.length > 0) {
-      setActiveServer(filtered[0]);
-    } else {
-      setActiveServer(rawServers[0]);
-    }
+    const best = pickBestServer(filtered.length > 0 ? filtered : rawServers);
+    setActiveServer(best);
   }, [selectedLanguage, rawServers]);
 
   // Group episodes by season for sidebar

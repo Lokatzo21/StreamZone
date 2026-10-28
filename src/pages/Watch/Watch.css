@@ -43,13 +43,15 @@
   border-radius: 0 !important;
 }
 
-/* Everything else around the player is softly blurred and dimmed */
+/* Everything else around the player is softly blurred and dimmed, but interactive above backdrop */
 .theater-mode-active .watch-top-navbar,
 .theater-mode-active .watch-player-toolbar,
 .theater-mode-active .watch-nav-controls-row,
 .theater-mode-active .episodes-sidebar-drawer {
-  opacity: 0.12;
-  filter: blur(4px);
+  position: relative;
+  z-index: 60;
+  opacity: 0.28;
+  filter: blur(2px);
   transition: opacity var(--transition-smooth), filter var(--transition-smooth);
 }
 
@@ -59,7 +61,6 @@
 .theater-mode-active .episodes-sidebar-drawer:hover {
   opacity: 1;
   filter: blur(0);
-  position: relative;
   z-index: 90;
 }
 
