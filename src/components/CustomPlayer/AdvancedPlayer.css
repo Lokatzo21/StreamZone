@@ -402,20 +402,81 @@
   top: calc(100% + 10px);
   right: 0;
   width: 320px;
-  max-height: 380px;
+  max-height: 400px;
   overflow-y: auto;
   padding: 14px;
+  border-radius: 12px;
   background: rgba(10, 13, 24, 0.98);
   border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.85), 0 0 20px rgba(0, 0, 0, 0.5);
+  z-index: 50;
+}
+
+.dropdown-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  padding: 0 2px;
+}
+
+.dropdown-count-badge {
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--accent-primary);
+  background: rgba(255, 107, 0, 0.15);
+  padding: 2px 7px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 107, 0, 0.3);
+}
+
+.dropdown-lang-tabs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+}
+
+.dropdown-lang-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.lang-tab-pill {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.lang-tab-pill:hover {
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+}
+
+.lang-tab-pill.active {
+  background: var(--accent-primary);
+  color: #fff;
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 10px var(--accent-glow);
 }
 
 .dropdown-title {
   font-family: var(--font-display);
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   font-weight: 700;
-  color: var(--text-secondary);
-  margin-bottom: 10px;
-  padding-left: 4px;
+  color: #fff;
+  margin: 0;
 }
 
 .servers-list {
@@ -973,59 +1034,31 @@
 }
 
 /* ==========================================================================
-   Clean View Mode (Ojo con línea en diagonal / Ocultar controles y servidores)
+   Controls Auto-Hide & Floating Buttons Repositioning
    ========================================================================== */
-.clean-view-mode-active .player-top-bar,
-.clean-view-mode-active .player-bottom-controls {
+.advanced-player-container.controls-hidden {
+  cursor: none;
+}
+
+.advanced-player-container.controls-hidden .player-top-bar {
   opacity: 0 !important;
   pointer-events: none !important;
-  transform: translateY(20px);
-  transition: opacity 0.3s ease, transform 0.3s ease;
+  transform: translateY(-10px);
 }
 
-.clean-view-mode-active .player-top-bar {
-  transform: translateY(-20px);
+.advanced-player-container.controls-hidden .player-bottom-controls {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transform: translateY(12px);
 }
 
-.clean-view-btn.active {
-  color: var(--accent-primary) !important;
+.advanced-player-container.controls-hidden .player-center-play-overlay.hidden {
+  opacity: 0 !important;
+  pointer-events: none !important;
 }
 
-/* Floating Clean View Exit button */
-.floating-clean-view-exit-btn {
-  position: absolute;
-  top: 24px;
-  right: 28px;
-  z-index: 50;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 18px;
-  border-radius: 30px;
-  background: rgba(13, 17, 30, 0.78);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  color: #fff;
-  font-family: var(--font-display);
-  font-size: 0.84rem;
-  font-weight: 700;
-  cursor: pointer;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
-  opacity: 0.65;
-  transition: all var(--transition-fast);
-}
-
-.floating-clean-view-exit-btn:hover {
-  opacity: 1;
-  background: rgba(13, 17, 30, 0.95);
-  border-color: var(--accent-primary);
-  transform: scale(1.05);
-  box-shadow: 0 6px 24px rgba(255, 107, 0, 0.35);
-}
-
-/* Keep floating Skip Intro & Next Episode neatly positioned when clean mode is active */
-.clean-view-mode-active .floating-skip-btn.intro,
-.clean-view-mode-active .player-next-countdown-card {
-  bottom: 28px !important;
+/* Keep floating Skip Intro & Next Episode neatly positioned when controls hide */
+.controls-hidden .floating-skip-btn.intro,
+.controls-hidden .player-next-countdown-card {
+  bottom: 24px !important;
 }

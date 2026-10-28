@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom';
 import {
   ChevronLeft, ChevronRight, List, Volume2, ArrowLeft,
-  Moon, Sun, Keyboard, X, Sparkles, Check
+  Moon, Sun, Keyboard, X, Sparkles, Check, Server, Play,
+  Eye, EyeOff, Maximize, SkipForward
 } from 'lucide-react';
 import AdvancedPlayer from '../../components/CustomPlayer/AdvancedPlayer';
 import { api } from '../../services/api';
@@ -33,10 +34,22 @@ const Watch = () => {
   const [selectedSeasonTab, setSelectedSeasonTab] = useState(querySeason);
   const [loading, setLoading] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [externalControlsVisible, setExternalControlsVisible] = useState(true);
+  const playerRef = useRef(null);
 
   // Proactive features: Theater / Lights Off Mode & Shortcuts Modal
   const [theaterMode, setTheaterMode] = useState(false);
   const [showShortcutsHelp, setShowShortcutsHelp] = useState(false);
+
+  const handleToggleControls = () => {
+    setExternalControlsVisible(prev => !prev);
+  };
+
+  const handleFullscreenFromToolbar = () => {
+    if (playerRef.current?.toggleFullscreen) {
+      playerRef.current.toggleFullscreen();
+    }
+  };
 
   // Load Media Info & All Episodes
   useEffect(() => {
@@ -162,9 +175,33 @@ const Watch = () => {
   const activeSeasonList = seasonsMap[querySeason] || currentSeasonEpisodes;
   const episodeInSeasonIdx = activeSeasonList.findIndex(e => Number(e.id) === episodeNumber);
   const relativeEpNum = episodeInSeasonIdx !== -1 ? episodeInSeasonIdx + 1 : episodeNumber;
-  const currentEpDisplayTitle = currentEp?.title && !currentEp.title.toLowerCase().startsWith('episodio')
-    ? currentEp.title
-    : `Episodio ${relativeEpNum}`;
+  // Content Type Detection (Película, Saga, Serie, Anime)
+  const isMovie = Boolean(
+    animeInfo?.isMovie ||
+    animeInfo?.contentType === 'peliculas' ||
+    /pel[ií]cula/i.test(animeInfo?.type || '') ||
+    (episodes.length === 1 && !animeInfo?.number_of_seasons && (!animeInfo?.totalEpisodes || Number(animeInfo?.totalEpisodes) === 1))
+  );
+
+  const isSaga = Boolean(
+    animeInfo?.isCollection ||
+    /saga|colecci[oó]n/i.test(animeInfo?.title || '') ||
+    /saga/i.test(animeInfo?.type || '')
+  );
+
+  const isAnime = Boolean(
+    animeInfo?.contentType === 'animes' ||
+    /anime/i.test(animeInfo?.type || '') ||
+    (Array.isArray(animeInfo?.genres) && animeInfo.genres.some(g => /animaci[oó]n|anime/i.test(typeof g === 'string' ? g : g.name)))
+  );
+
+  const isSeries = !isMovie && !isSaga && !isAnime;
+
+  const currentEpDisplayTitle = isMovie
+    ? 'Película Completa'
+    : (currentEp?.title && !currentEp.title.toLowerCase().startsWith('episodio')
+        ? currentEp.title
+        : `Episodio ${relativeEpNum}`);
 
   const currentIndex = episodes.findIndex(e => Number(e.id) === episodeNumber);
   const hasNext = currentIndex !== -1 && currentIndex < episodes.length - 1;
@@ -183,10 +220,6 @@ const Watch = () => {
       navigate(`/watch/${id}/${prevEp.id}?season=${prevEp.season || querySeason}`);
     }
   };
-
-  // Filtered server list matching current language
-  const currentLanguageServers = rawServers.filter(s => s.lang === selectedLanguage);
-  const displayServers = currentLanguageServers.length > 0 ? currentLanguageServers : rawServers;
 
   return (
     <div className={`watch-page-container ${theaterMode ? 'theater-mode-active' : ''}`}>
@@ -210,7 +243,13 @@ const Watch = () => {
           <span className="crumb-title">{animeInfo?.title}</span>
           <span className="crumb-sep">/</span>
           <span className="crumb-ep">
-            {availableSeasons.length > 1 ? `T${querySeason}: ${currentEpDisplayTitle}` : currentEpDisplayTitle}
+            {isMovie
+              ? 'Película Completa'
+              : isSaga
+                ? (currentEp?.title && currentEp.title !== animeInfo?.title ? currentEp.title : `Parte ${relativeEpNum}`)
+                : availableSeasons.length > 1
+                  ? `T${querySeason}: ${currentEpDisplayTitle}`
+                  : currentEpDisplayTitle}
           </span>
         </div>
 
@@ -230,32 +269,87 @@ const Watch = () => {
           <button
             className="shortcuts-help-btn"
             onClick={() => setShowShortcutsHelp(true)}
-            title="Atajos de teclado (?)"
+            title="Atajos de teclado en PC (?)"
             aria-label="Atajos de teclado"
           >
             <Keyboard size={17} />
           </button>
 
-          {/* Toggle Sidebar */}
-          <button
-            className={`toggle-sidebar-btn ${isSidebarOpen ? 'active' : ''}`}
-            onClick={() => setIsSidebarOpen(prev => !prev)}
-            aria-label={isSidebarOpen ? 'Ocultar lista' : 'Ver episodios'}
-          >
-            <List size={18} />
-            <span className="tool-btn-text">{isSidebarOpen ? 'Ocultar Lista' : 'Episodios'}</span>
-          </button>
+          {/* Toggle Sidebar (Only if not a single movie) */}
+          {(!isMovie || episodes.length > 1) && (
+            <button
+              className={`toggle-sidebar-btn ${isSidebarOpen ? 'active' : ''}`}
+              onClick={() => setIsSidebarOpen(prev => !prev)}
+              aria-label={isSidebarOpen ? 'Ocultar lista' : 'Ver episodios'}
+            >
+              <List size={18} />
+              <span className="tool-btn-text">
+                {isSidebarOpen ? 'Ocultar Lista' : (isSaga ? 'Películas' : 'Episodios')}
+              </span>
+            </button>
+          )}
         </div>
       </div>
 
       {/* Main Theater Stage */}
-      <div className={`watch-stage-layout ${isSidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
+      <div className={`watch-stage-layout ${isSidebarOpen && (!isMovie || episodes.length > 1) ? 'sidebar-open' : 'sidebar-closed'}`}>
         {/* Left Video Area */}
         <div className="player-stage-column">
+          {/* Player Toolbar: Outside and ABOVE the Player (AnimeZona / Clean UX Style) */}
+          <div className="watch-player-toolbar glass-panel">
+            <button
+              className={`toolbar-btn ${theaterMode ? 'active' : ''}`}
+              onClick={() => setTheaterMode(t => !t)}
+              title={theaterMode ? 'Encender luces' : 'Modo Cine'}
+            >
+              {theaterMode ? <Sun size={17} /> : <Moon size={17} />}
+              <span>{theaterMode ? 'Luces ON' : 'Modo Cine'}</span>
+            </button>
+
+            <button
+              className={`toolbar-btn ${!externalControlsVisible ? 'active' : ''}`}
+              onClick={handleToggleControls}
+              title={externalControlsVisible ? 'Ocultar controles del reproductor' : 'Mostrar controles del reproductor'}
+            >
+              {externalControlsVisible ? <EyeOff size={17} /> : <Eye size={17} />}
+              <span>{externalControlsVisible ? 'Ocultar Controles' : 'Mostrar Controles'}</span>
+            </button>
+
+            <button
+              className="toolbar-btn"
+              onClick={handleFullscreenFromToolbar}
+              title="Pantalla Completa"
+            >
+              <Maximize size={17} />
+              <span>Pantalla Completa</span>
+            </button>
+
+            {hasNext && (
+              <button
+                className="toolbar-btn"
+                onClick={handleNextEpisode}
+                title={isSaga ? 'Siguiente Película' : 'Siguiente Episodio'}
+              >
+                <SkipForward size={17} />
+                <span>{isSaga ? 'Siguiente Película' : 'Siguiente Ep.'}</span>
+              </button>
+            )}
+
+            <button
+              className="toolbar-btn"
+              onClick={() => setShowShortcutsHelp(true)}
+              title="Atajos de teclado en PC"
+            >
+              <Keyboard size={17} />
+              <span>Atajos en PC</span>
+            </button>
+          </div>
+
           <AdvancedPlayer
+            ref={playerRef}
             animeInfo={animeInfo}
             episodeInfo={currentEp}
-            servers={displayServers}
+            servers={rawServers}
             activeServer={activeServer}
             onSelectServer={setActiveServer}
             onNextEpisode={handleNextEpisode}
@@ -264,58 +358,54 @@ const Watch = () => {
             hasPrevEpisode={hasPrev}
             onToggleTheater={() => setTheaterMode(t => !t)}
             onOpenShortcutsHelp={() => setShowShortcutsHelp(true)}
+            externalControlsVisible={externalControlsVisible}
+            onToggleControls={handleToggleControls}
+            isMovie={isMovie}
+            isSaga={isSaga}
           />
 
-          {/* Player Metadata & Dynamic Language Bar */}
-          <div className="watch-under-player-row glass-panel">
-            <div className="media-summary-left">
-              <h2 className="under-title">{animeInfo?.title}</h2>
-              <p className="under-episode-name">
-                {availableSeasons.length > 1
-                  ? `Temporada ${querySeason} • ${currentEpDisplayTitle}`
-                  : currentEpDisplayTitle}
-              </p>
-            </div>
+          {/* Episode Navigation Row (only if not a single movie) */}
+          {(!isMovie || episodes.length > 1) && (
+            <div className="watch-nav-controls-row glass-panel">
+              <button
+                className="nav-control-btn"
+                disabled={!hasPrev}
+                onClick={handlePrevEpisode}
+              >
+                <ChevronLeft size={20} />
+                <span>{isSaga ? 'Película Anterior' : 'Episodio Anterior'}</span>
+              </button>
 
-            {/* DYNAMIC AUDIO LANGUAGES (ONLY AVAILABLE ONES IN DB) */}
-            <div className="audio-languages-container">
-              {availableLanguages.length > 1 ? (
-                <div className="audio-lang-selector-pills">
-                  <span className="lang-selector-label">
-                    <Volume2 size={15} />
-                    <span>Audio:</span>
-                  </span>
-                  {availableLanguages.map(lang => (
-                    <button
-                      key={lang}
-                      className={`lang-pill ${selectedLanguage === lang ? 'active' : ''}`}
-                      onClick={() => setSelectedLanguage(lang)}
-                    >
-                      {selectedLanguage === lang && <Check size={14} className="lang-check" />}
-                      <span>{LANG_LABELS[lang] || lang.toUpperCase()}</span>
-                    </button>
-                  ))}
-                </div>
-              ) : availableLanguages.length === 1 ? (
-                <div className="single-lang-badge">
-                  <Volume2 size={15} />
-                  <span>Disponible en: <strong>{LANG_LABELS[availableLanguages[0]] || availableLanguages[0].toUpperCase()}</strong></span>
-                </div>
-              ) : null}
+              <button
+                className={`nav-control-btn list-btn ${isSidebarOpen ? 'active' : ''}`}
+                onClick={() => setIsSidebarOpen(prev => !prev)}
+              >
+                <List size={20} />
+                <span>{isSidebarOpen ? 'Ocultar Lista' : (isSaga ? 'Ver Películas' : 'Lista de Episodios')}</span>
+              </button>
+
+              <button
+                className="nav-control-btn"
+                disabled={!hasNext}
+                onClick={handleNextEpisode}
+              >
+                <span>{isSaga ? 'Siguiente Película' : 'Siguiente Episodio'}</span>
+                <ChevronRight size={20} />
+              </button>
             </div>
-          </div>
+          )}
         </div>
 
-        {/* Right Episodes Sidebar Drawer */}
-        {isSidebarOpen && (
+        {/* Right Episodes Sidebar Drawer (Only if not a single movie) */}
+        {isSidebarOpen && (!isMovie || episodes.length > 1) && (
           <aside className="episodes-sidebar-drawer glass-panel fade-in">
             <div className="sidebar-drawer-header">
-              <h3 className="drawer-title">Episodios</h3>
-              <span className="drawer-count">{episodes.length} totales</span>
+              <h3 className="drawer-title">{isSaga ? 'Películas de la Saga' : 'Episodios'}</h3>
+              <span className="drawer-count">{episodes.length} {isSaga ? 'películas' : 'totales'}</span>
             </div>
 
-            {/* Season Selector Tabs in Sidebar (if > 1 season) */}
-            {availableSeasons.length > 1 && (
+            {/* Season Selector Tabs in Sidebar (if > 1 season and not saga) */}
+            {!isSaga && availableSeasons.length > 1 && (
               <div className="sidebar-season-tabs">
                 {availableSeasons.map(s => (
                   <button
@@ -343,9 +433,13 @@ const Watch = () => {
                     </div>
                     <div className="ep-info-col">
                       <span className="sidebar-ep-title">
-                        {ep.title && !ep.title.toLowerCase().startsWith('episodio') ? ep.title : `Episodio ${idx + 1}`}
+                        {isSaga
+                          ? (ep.title && ep.title !== animeInfo?.title ? ep.title : `Película ${idx + 1}`)
+                          : (ep.title && !ep.title.toLowerCase().startsWith('episodio') ? ep.title : `Episodio ${idx + 1}`)}
                       </span>
-                      <span className="sidebar-ep-season">Temporada {ep.season || selectedSeasonTab}</span>
+                      <span className="sidebar-ep-season">
+                        {isSaga ? `Película ${idx + 1}` : `Temporada ${ep.season || selectedSeasonTab}`}
+                      </span>
                     </div>
                   </button>
                 );

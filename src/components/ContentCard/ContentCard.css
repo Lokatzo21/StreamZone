@@ -141,58 +141,59 @@
   display: flex;
   align-items: center;
   gap: 5px;
-  z-index: 6;
+  z-index: 20;
 }
 
 .card-action-btn {
-  width: 27px;
-  height: 27px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
-  background: rgba(13, 17, 30, 0.78);
+  background: rgba(13, 17, 30, 0.85);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: rgba(255, 255, 255, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: rgba(255, 255, 255, 0.85);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   opacity: 0;
-  transform: scale(0.9);
-  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+  transition: opacity 0.18s ease, background-color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+  touch-action: manipulation;
+  user-select: none;
+}
+
+.card-action-btn svg {
+  pointer-events: none;
 }
 
 .content-card:hover .card-action-btn,
 .card-action-btn.visible {
   opacity: 1;
-  transform: scale(1);
 }
 
 /* Favorited items always remain visible on the card */
 .card-action-btn.fav-btn.active {
   opacity: 1 !important;
-  transform: scale(1) !important;
-  background: rgba(255, 42, 95, 0.22);
-  border-color: rgba(255, 42, 95, 0.65);
+  background: rgba(255, 42, 95, 0.3);
+  border-color: rgba(255, 42, 95, 0.9);
   color: #ff2a5f;
-  box-shadow: 0 0 10px rgba(255, 42, 95, 0.45);
+  box-shadow: 0 0 12px rgba(255, 42, 95, 0.6);
 }
 
 .card-action-btn.fav-btn:hover {
-  background: rgba(255, 42, 95, 0.35);
+  background: rgba(255, 42, 95, 0.5);
   border-color: #ff2a5f;
   color: #ff2a5f;
-  transform: scale(1.18) !important;
-  box-shadow: 0 0 14px rgba(255, 42, 95, 0.65);
+  box-shadow: 0 0 16px rgba(255, 42, 95, 0.8);
 }
 
 .card-action-btn.hide-btn:hover {
   background: rgba(229, 9, 20, 0.85);
   color: #fff;
-  border-color: rgba(255, 255, 255, 0.4);
-  transform: scale(1.15) !important;
-  box-shadow: 0 0 10px rgba(229, 9, 20, 0.6);
+  border-color: rgba(255, 255, 255, 0.5);
+  box-shadow: 0 0 12px rgba(229, 9, 20, 0.7);
 }
 
 /* Card Collapse Animation */
@@ -510,6 +511,11 @@
 
 /* Mobile & POCO M6 Pro 5G Sizing & 120Hz Fluid Scrolling */
 @media (max-width: 768px) {
+  .card-action-btn {
+    opacity: 0.9;
+    width: 32px;
+    height: 32px;
+  }
   .card-bottom-label {
     margin-top: 8px;
   }

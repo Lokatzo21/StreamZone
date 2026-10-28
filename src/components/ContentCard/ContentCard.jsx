@@ -24,7 +24,8 @@ const ContentCard = ({
   const [showHideConfirm, setShowHideConfirm] = useState(false);
   const [isHidingAnim, setIsHidingAnim] = useState(false);
 
-  const isFav = item?.id ? isFavorite(item.id) : false;
+  const targetId = item?.id || item?.anime_tmdb_id || item?.tmdb_id;
+  const isFav = targetId ? isFavorite(targetId) : false;
 
   // Optimized poster or backdrop resolution with WPO WebP
   const rawUrl = aspect === 'backdrop'
@@ -56,9 +57,7 @@ const ContentCard = ({
   const handleToggleFavorite = (e) => {
     e.stopPropagation();
     e.preventDefault();
-    if (!requireAuth(() => toggleFavorite(item), 'Inicia sesión para guardar títulos en tus Favoritos.')) {
-      return;
-    }
+    toggleFavorite(item);
   };
 
   const handleOpenConfirm = (e) => {
@@ -153,27 +152,30 @@ const ContentCard = ({
 
             {/* Card Action Buttons: Favorites (Heart) & Hide (EyeOff) - STRICTLY AUTHENTICATED */}
             {user && !showHideConfirm && (
-              <div className="card-top-actions">
+              <div className="card-top-actions" onClick={e => e.stopPropagation()}>
                 <button
+                  type="button"
                   className={`card-action-btn fav-btn ${isFav ? 'active' : ''} ${isHovered ? 'visible' : ''}`}
                   onClick={handleToggleFavorite}
                   title={isFav ? 'Quitar de Favoritos' : 'Guardar en Favoritos'}
                   aria-label="Guardar en Favoritos"
                 >
                   <Heart
-                    size={13}
+                    size={15}
                     fill={isFav ? '#ff2a5f' : 'none'}
                     color={isFav ? '#ff2a5f' : 'currentColor'}
+                    style={{ pointerEvents: 'none' }}
                   />
                 </button>
 
                 <button
+                  type="button"
                   className={`card-action-btn hide-btn ${isHovered ? 'visible' : ''}`}
                   onClick={handleOpenConfirm}
                   title="Ocultar recomendación"
                   aria-label="Ocultar recomendación"
                 >
-                  <EyeOff size={13} />
+                  <EyeOff size={13} style={{ pointerEvents: 'none' }} />
                 </button>
               </div>
             )}

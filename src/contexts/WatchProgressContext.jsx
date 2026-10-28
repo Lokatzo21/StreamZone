@@ -233,42 +233,59 @@ export const WatchProgressProvider = ({ children }) => {
 
   // Check if item is in My List
   const isInMyList = (id) => {
-    if (!user || !id) return false;
+    if (!id) return false;
     const strId = String(id);
-    return myList.some(item => String(item.id) === strId);
+    const list = Array.isArray(myList) ? myList : [];
+    return list.some(item => String(item.id || item.anime_tmdb_id || item.tmdb_id) === strId);
   };
 
   // Add / Remove from My List
   const toggleMyList = (item) => {
-    if (!user || !item || !item.id) return;
-    const strId = String(item.id);
+    if (!item) return;
+    const targetId = item.id || item.anime_tmdb_id || item.tmdb_id;
+    if (!targetId) return;
+    const strId = String(targetId);
     setMyList(prev => {
-      const exists = (prev || []).some(i => String(i.id) === strId);
+      const list = Array.isArray(prev) ? prev : [];
+      const exists = list.some(i => String(i.id || i.anime_tmdb_id || i.tmdb_id) === strId);
       if (exists) {
-        return (prev || []).filter(i => String(i.id) !== strId);
+        return list.filter(i => String(i.id || i.anime_tmdb_id || i.tmdb_id) !== strId);
       } else {
-        return [item, ...(prev || [])];
+        return [{ ...item, id: strId }, ...list];
       }
     });
   };
 
   // Check if item is Favorite
   const isFavorite = (id) => {
-    if (!user || !id) return false;
+    if (!id) return false;
     const strId = String(id);
-    return favorites.some(item => String(item.id) === strId);
+    const list = Array.isArray(favorites) ? favorites : [];
+    return list.some(item => {
+      const itemId = item.id || item.anime_tmdb_id || item.tmdb_id;
+      return String(itemId) === strId;
+    });
   };
 
   // Toggle favorite
   const toggleFavorite = (item) => {
-    if (!user || !item || !item.id) return;
-    const strId = String(item.id);
+    if (!item) return;
+    const targetId = item.id || item.anime_tmdb_id || item.tmdb_id;
+    if (!targetId) return;
+    const strId = String(targetId);
     setFavorites(prev => {
-      const exists = (prev || []).some(i => String(i.id) === strId);
+      const list = Array.isArray(prev) ? prev : [];
+      const exists = list.some(i => {
+        const itemId = i.id || i.anime_tmdb_id || i.tmdb_id;
+        return String(itemId) === strId;
+      });
       if (exists) {
-        return (prev || []).filter(i => String(i.id) !== strId);
+        return list.filter(i => {
+          const itemId = i.id || i.anime_tmdb_id || i.tmdb_id;
+          return String(itemId) !== strId;
+        });
       } else {
-        return [item, ...(prev || [])];
+        return [{ ...item, id: strId }, ...list];
       }
     });
   };
@@ -281,7 +298,7 @@ export const WatchProgressProvider = ({ children }) => {
     return entry.episodes?.[`s${seasonNumber}_e${episodeId}`] || null;
   };
 
-  const value = {
+  const value = useMemo(() => ({
     watchHistory,
     continueWatchingList,
     watchedHistoryList,
@@ -302,7 +319,14 @@ export const WatchProgressProvider = ({ children }) => {
     addItemToCustomList,
     removeItemFromCustomList,
     isInCustomList
-  };
+  }), [
+    watchHistory,
+    continueWatchingList,
+    watchedHistoryList,
+    myList,
+    favorites,
+    customLists
+  ]);
 
   return (
     <WatchProgressContext.Provider value={value}>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import Hls from 'hls.js';
 import {
   Play, Pause, RotateCcw, RotateCw, Volume2, VolumeX,
@@ -19,7 +19,7 @@ const formatTime = (seconds) => {
   return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
 };
 
-const AdvancedPlayer = ({
+const AdvancedPlayer = React.forwardRef(({
   animeInfo,
   episodeInfo,
   servers = [],
@@ -30,9 +30,27 @@ const AdvancedPlayer = ({
   hasNextEpisode = false,
   hasPrevEpisode = false,
   onToggleTheater,
-  onOpenShortcutsHelp
-}) => {
+  onOpenShortcutsHelp,
+  externalControlsVisible = true,
+  onToggleControls,
+  isMovie: isMovieProp,
+  isSaga: isSagaProp
+}, ref) => {
   const { saveProgress, getEpisodeProgress } = useWatchProgress();
+
+  const isMovie = Boolean(
+    isMovieProp ||
+    animeInfo?.isMovie ||
+    animeInfo?.contentType === 'peliculas' ||
+    /pel[ií]cula/i.test(animeInfo?.type || '')
+  );
+
+  const isSaga = Boolean(
+    isSagaProp ||
+    animeInfo?.isCollection ||
+    /saga|colecci[oó]n/i.test(animeInfo?.title || '') ||
+    /saga/i.test(animeInfo?.type || '')
+  );
 
   const containerRef = useRef(null);
   const videoRef = useRef(null);
@@ -69,11 +87,23 @@ const AdvancedPlayer = ({
   const [showSkipIntro, setShowSkipIntro] = useState(false);
   const [showNextEpisodePrompt, setShowNextEpisodePrompt] = useState(false);
   const [countdownSeconds, setCountdownSeconds] = useState(null);
-  const [cleanViewMode, setCleanViewMode] = useState(false);
 
   // Scrubber hover state
   const [hoverPosition, setHoverPosition] = useState(null);
   const [hoverTime, setHoverTime] = useState(0);
+
+  // Server language filtering inside dropdown
+  const [selectedServerLangFilter, setSelectedServerLangFilter] = useState('all');
+
+  const availableServerLangs = useMemo(() => {
+    const langs = new Set(servers.map(s => s.lang).filter(Boolean));
+    return Array.from(langs);
+  }, [servers]);
+
+  const filteredDropdownServers = useMemo(() => {
+    if (selectedServerLangFilter === 'all') return servers;
+    return servers.filter(s => s.lang === selectedServerLangFilter);
+  }, [servers, selectedServerLangFilter]);
 
   // Check if current server is a direct playable video URL (MP4 / HLS / Rumble / Archive / Arcando)
   const isDirectVideo = Boolean(
@@ -264,18 +294,34 @@ const AdvancedPlayer = ({
     }
   };
 
-  // Control bar auto-hide
-  const triggerControls = useCallback(() => {
+  const effectiveControlsVisible = externalControlsVisible && controlsVisible;
+
+  // Control bar auto-hide after 3 seconds of inactivity while playing
+  const resetControlsTimeout = useCallback(() => {
     setControlsVisible(true);
     if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
-    controlsTimeoutRef.current = setTimeout(() => {
-      if (isPlaying) {
+    if (isPlaying && externalControlsVisible) {
+      controlsTimeoutRef.current = setTimeout(() => {
         setControlsVisible(false);
         setShowSettingsMenu(false);
         setShowServerMenu(false);
-      }
-    }, 3500);
-  }, [isPlaying]);
+      }, 3000);
+    }
+  }, [isPlaying, externalControlsVisible]);
+
+  useEffect(() => {
+    if (isPlaying && externalControlsVisible) {
+      resetControlsTimeout();
+    } else {
+      if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
+      setControlsVisible(true);
+    }
+  }, [isPlaying, externalControlsVisible, resetControlsTimeout]);
+
+  // Control bar auto-hide alias
+  const triggerControls = useCallback(() => {
+    resetControlsTimeout();
+  }, [resetControlsTimeout]);
 
   // Keyboard navigation & remote control shortcuts
   useEffect(() => {
@@ -459,7 +505,10 @@ const AdvancedPlayer = ({
 
   // Touch gesture & surface click handler: distinguishes single tap vs double-tap seek
   const handlePlayerSurfaceTap = (e) => {
-    if (!hasStarted) return;
+    if (!hasStarted) {
+      togglePlay();
+      return;
+    }
     const container = containerRef.current;
     if (!container) return;
 
@@ -469,8 +518,8 @@ const AdvancedPlayer = ({
     const now = Date.now();
     const timeSinceLast = now - lastTapRef.current.time;
 
-    if (timeSinceLast > 0 && timeSinceLast < 320) {
-      // Double tap detected! Clear pending single tap timeout
+    if (timeSinceLast > 0 && timeSinceLast < 280) {
+      // Double tap / double click detected! Clear pending single tap timeout
       if (tapTimeoutRef.current) {
         clearTimeout(tapTimeoutRef.current);
         tapTimeoutRef.current = null;
@@ -491,16 +540,22 @@ const AdvancedPlayer = ({
 
       lastTapRef.current = { time: 0, x: 0 };
     } else {
-      // Single tap candidate
+      // Single tap / click: toggle controls smoothly
       lastTapRef.current = { time: now, x: clientX };
       tapTimeoutRef.current = setTimeout(() => {
         setControlsVisible((prev) => {
           const next = !prev;
-          if (next) triggerControls();
+          if (next) {
+            resetControlsTimeout();
+          } else {
+            if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
+            setShowSettingsMenu(false);
+            setShowServerMenu(false);
+          }
           return next;
         });
         tapTimeoutRef.current = null;
-      }, 260);
+      }, 180);
     }
   };
 
@@ -599,14 +654,21 @@ const AdvancedPlayer = ({
     setShowResumePrompt(false);
   };
 
+  React.useImperativeHandle(ref, () => ({
+    toggleFullscreen,
+    togglePlay,
+    seekDelta,
+    setControlsVisible: (val) => setControlsVisible(val)
+  }));
+
   const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
   const bufferPercent = duration > 0 ? (bufferedTime / duration) * 100 : 0;
 
   return (
     <div
       ref={containerRef}
-      className={`advanced-player-container ${controlsVisible ? 'controls-active' : 'controls-hidden'} ${isFullscreen ? 'fullscreen' : ''} ${cleanViewMode ? 'clean-view-mode-active' : ''}`}
-      onMouseMove={triggerControls}
+      className={`advanced-player-container ${effectiveControlsVisible ? 'controls-active' : 'controls-hidden'} ${isFullscreen ? 'fullscreen' : ''}`}
+      onMouseMove={resetControlsTimeout}
     >
       {/* Video Engine: Native Video Player for MP4 / HLS */}
       {isDirectVideo ? (
@@ -667,7 +729,7 @@ const AdvancedPlayer = ({
       {/* Central Play/Pause Action Button Overlay (Mobile & Desktop) */}
       {isDirectVideo && hasStarted && (
         <div
-          className={`player-center-play-overlay ${controlsVisible || !isPlaying ? 'visible' : 'hidden'}`}
+          className={`player-center-play-overlay ${effectiveControlsVisible || !isPlaying ? 'visible' : 'hidden'}`}
           onClick={(e) => {
             e.stopPropagation();
             togglePlay();
@@ -726,17 +788,7 @@ const AdvancedPlayer = ({
         </div>
       )}
 
-      {/* Exit Clean View Mode Floating Button */}
-      {cleanViewMode && (
-        <button
-          className="floating-clean-view-exit-btn fade-in"
-          onClick={() => setCleanViewMode(false)}
-          title="Restaurar controles y servidores"
-        >
-          <Eye size={17} />
-          <span>Restaurar Controles</span>
-        </button>
-      )}
+
 
       {/* Resume Prompt Dialog (Perfectamente centrado en el reproductor) */}
       {showResumePrompt && (
@@ -793,11 +845,24 @@ const AdvancedPlayer = ({
       )}
 
       {/* Top Header Bar inside Player */}
-      <div className="player-top-bar">
+      <div
+        className="player-top-bar"
+        onClick={(e) => {
+          if (e.target === e.currentTarget || e.target.classList.contains('player-title-info')) {
+            handlePlayerSurfaceTap(e);
+          }
+        }}
+      >
         <div className="player-title-info">
           <h2 className="player-anime-title">{animeInfo?.title}</h2>
           <span className="player-episode-subtitle">
-            {episodeInfo?.title || `Episodio ${episodeInfo?.id || 1}`}
+            {isMovie
+              ? 'Película Completa'
+              : isSaga
+                ? (episodeInfo?.title && episodeInfo.title !== animeInfo?.title ? episodeInfo.title : 'Película de la saga')
+                : (episodeInfo?.title && !episodeInfo.title.toLowerCase().startsWith('episodio')
+                    ? `T${episodeInfo?.season || 1} • ${episodeInfo.title}`
+                    : `Temporada ${episodeInfo?.season || 1} • Episodio ${episodeInfo?.id || 1}`)}
           </span>
         </div>
 
@@ -816,12 +881,36 @@ const AdvancedPlayer = ({
             <span className="server-lang-badge">{activeServer?.lang || 'SUB'}</span>
           </button>
 
-          {/* Server Dropdown */}
+          {/* Server Dropdown (Clean, multi-server & multi-language responsive) */}
           {showServerMenu && (
             <div className="player-servers-dropdown glass-panel fade-in" onClick={e => e.stopPropagation()}>
-              <h4 className="dropdown-title">Servidores Disponibles</h4>
+              <div className="dropdown-header-row">
+                <h4 className="dropdown-title">Servidores Disponibles</h4>
+                <span className="dropdown-count-badge">{filteredDropdownServers.length}</span>
+              </div>
+
+              {availableServerLangs.length > 1 && (
+                <div className="dropdown-lang-tabs">
+                  <button
+                    className={`lang-tab-pill ${selectedServerLangFilter === 'all' ? 'active' : ''}`}
+                    onClick={() => setSelectedServerLangFilter('all')}
+                  >
+                    Todos
+                  </button>
+                  {availableServerLangs.map(lang => (
+                    <button
+                      key={lang}
+                      className={`lang-tab-pill ${selectedServerLangFilter === lang ? 'active' : ''}`}
+                      onClick={() => setSelectedServerLangFilter(lang)}
+                    >
+                      {lang === 'latino' ? 'Latino' : lang === 'castellano' ? 'Castellano' : lang === 'sub' ? 'Sub' : lang.toUpperCase()}
+                    </button>
+                  ))}
+                </div>
+              )}
+
               <div className="servers-list">
-                {servers.map((srv, idx) => (
+                {filteredDropdownServers.map((srv, idx) => (
                   <button
                     key={idx}
                     className={`server-option-btn ${activeServer?.url === srv.url ? 'active' : ''}`}
@@ -832,12 +921,12 @@ const AdvancedPlayer = ({
                   >
                     <div className="server-opt-left">
                       <span className="server-opt-name">{srv.name}</span>
-                      <span className="server-opt-desc">{srv.description}</span>
+                      <span className="server-opt-desc">{srv.description || (srv.lang ? `Audio ${srv.lang.toUpperCase()}` : '')}</span>
                     </div>
                     <div className="server-opt-badges">
                       {srv.isDirectMp4 && <span className="srv-badge mp4">MP4</span>}
                       {srv.isHls && <span className="srv-badge hls">HLS</span>}
-                      <span className="srv-badge lang">{srv.lang?.toUpperCase()}</span>
+                      {srv.lang && <span className="srv-badge lang">{srv.lang?.toUpperCase()}</span>}
                       {activeServer?.url === srv.url && <Check size={16} className="srv-check" />}
                     </div>
                   </button>
@@ -850,7 +939,12 @@ const AdvancedPlayer = ({
 
       {/* Bottom Custom Controls Bar */}
       {isDirectVideo && (
-        <div className="player-bottom-controls" onClick={e => e.stopPropagation()}>
+        <div
+          className="player-bottom-controls"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) handlePlayerSurfaceTap(e);
+          }}
+        >
           {/* Mobile-First Dedicated Time Row above Scrubber (Left: current, Right: total) */}
           <div className="player-scrubber-time-row">
             <span className="scrubber-time-current">{formatTime(currentTime)}</span>
@@ -1023,15 +1117,7 @@ const AdvancedPlayer = ({
                 )}
               </div>
 
-              {/* Clean View Mode Toggle (Ojo con línea en diagonal - Oculta interfaz y servidores) */}
-              <button
-                className={`control-btn clean-view-btn ${cleanViewMode ? 'active' : ''}`}
-                onClick={() => setCleanViewMode(prev => !prev)}
-                aria-label={cleanViewMode ? 'Restaurar controles' : 'Modo Vista Limpia (Ocultar interfaz)'}
-                title={cleanViewMode ? 'Mostrar interfaz completa' : 'Modo Vista Limpia (Ocultar controles y servidores)'}
-              >
-                {cleanViewMode ? <Eye size={20} /> : <EyeOff size={20} />}
-              </button>
+
 
               {/* Fullscreen Toggle */}
               <button
@@ -1048,6 +1134,6 @@ const AdvancedPlayer = ({
       )}
     </div>
   );
-};
+});
 
 export default AdvancedPlayer;

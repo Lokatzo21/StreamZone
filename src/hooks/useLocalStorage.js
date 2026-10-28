@@ -1,13 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../services/supabase';
 
 // Debounce timer registry for Supabase cloud sync
 const syncTimers = {};
 
 export function useLocalStorage(key, initialValue) {
-  const readValue = () => {
+  const instanceId = useRef(Math.random().toString(36).substring(2)).current;
+  const initialValueRef = useRef(initialValue);
+  initialValueRef.current = initialValue;
+
+  const readValue = useCallback(() => {
     if (!key || typeof window === 'undefined') {
-      return initialValue;
+      return initialValueRef.current;
     }
     try {
       const item = window.localStorage.getItem(key);
@@ -18,21 +22,21 @@ export function useLocalStorage(key, initialValue) {
         }
         return parsed;
       }
-      return initialValue;
+      return initialValueRef.current;
     } catch (error) {
       console.error(`Error reading localStorage key "${key}":`, error);
-      return initialValue;
+      return initialValueRef.current;
     }
-  };
+  }, [key]);
 
   const [storedValue, setStoredValue] = useState(readValue);
 
   // Reload when key changes (e.g. user logs in, switches profile, or logs out)
   useEffect(() => {
     setStoredValue(readValue());
-  }, [key]);
+  }, [key, readValue]);
 
-  const setValue = (value) => {
+  const setValue = useCallback((value) => {
     try {
       setStoredValue(prevStoredValue => {
         const valueToStore = value instanceof Function ? value(prevStoredValue) : value;
@@ -40,12 +44,18 @@ export function useLocalStorage(key, initialValue) {
           return valueToStore;
         }
 
-        window.localStorage.setItem(key, JSON.stringify(valueToStore));
-        
-        // Cross-component sync in current window
-        window.dispatchEvent(new CustomEvent('local-storage-sync', {
-          detail: { key, newValue: valueToStore }
-        }));
+        try {
+          window.localStorage.setItem(key, JSON.stringify(valueToStore));
+        } catch (e) {
+          console.error(`Error writing to localStorage key "${key}":`, e);
+        }
+
+        // Notify other components asynchronously outside the current state tick
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('local-storage-sync', {
+            detail: { key, newValue: valueToStore, senderId: instanceId }
+          }));
+        }, 0);
 
         // Up-sync to Supabase user_sync with 2.5s debounce ONLY if authenticated
         if (syncTimers[key]) clearTimeout(syncTimers[key]);
@@ -71,7 +81,7 @@ export function useLocalStorage(key, initialValue) {
     } catch (error) {
       console.error(`Error writing to localStorage key "${key}":`, error);
     }
-  };
+  }, [key, instanceId]);
 
   useEffect(() => {
     if (!key) return;
@@ -89,7 +99,7 @@ export function useLocalStorage(key, initialValue) {
     };
 
     const handleCustomSync = (e) => {
-      if (e.detail && e.detail.key === key) {
+      if (e.detail && e.detail.key === key && e.detail.senderId !== instanceId) {
         setStoredValue(e.detail.newValue);
       }
     };
@@ -101,7 +111,7 @@ export function useLocalStorage(key, initialValue) {
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('local-storage-sync', handleCustomSync);
     };
-  }, [key, initialValue]);
+  }, [key, initialValue, instanceId]);
 
   return [storedValue, setValue];
 }
