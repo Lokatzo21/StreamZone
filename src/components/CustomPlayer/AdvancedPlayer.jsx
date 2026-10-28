@@ -143,14 +143,15 @@ const AdvancedPlayer = React.forwardRef(({
     return servers.filter(s => s.lang === selectedServerLangFilter);
   }, [servers, selectedServerLangFilter]);
 
-  // Check if current server is a direct playable video URL (MP4 / HLS / Rumble / Archive / Arcando)
+  // Check if current server is a direct playable video URL (MP4 / HLS / Rumble / Archive / Arcando / Mediafire)
   const isDirectVideo = Boolean(
     activeServer?.url && (
       activeServer.url.includes('.mp4') ||
       activeServer.url.includes('.m3u8') ||
       activeServer.url.includes('streamproxy') ||
       activeServer.url.includes('.p3x8') ||
-      (activeServer.name && /arcando/i.test(activeServer.name)) ||
+      activeServer.url.includes('mediafire') ||
+      (activeServer.name && /arcando|mediafire/i.test(activeServer.name)) ||
       activeServer.isDirectMp4 ||
       activeServer.isHls
     )
