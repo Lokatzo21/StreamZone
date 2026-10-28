@@ -1381,6 +1381,24 @@ export const api = {
           };
         });
 
+        // Sincronización inteligente de tiempos:
+        // Si algún servidor del episodio ya tiene skip_start o outro_start,
+        // compartirlo automáticamente con los demás servidores directos (.mp4, .m3u8, rumble, cinebel, mediafire)
+        const commonSkipStart = servers.find(s => s.skip_start != null)?.skip_start ?? null;
+        const commonSkipEnd = servers.find(s => s.skip_end != null)?.skip_end ?? null;
+        const commonOutroStart = servers.find(s => s.outro_start != null)?.outro_start ?? null;
+
+        if (commonSkipStart != null || commonOutroStart != null) {
+          servers.forEach(s => {
+            const isDirect = s.isDirectMp4 || s.isHls || (s.url && /mediafire|rumble|cinebel|arcando|\.mp4|\.m3u8/i.test(s.url));
+            if (isDirect) {
+              if (s.skip_start == null) s.skip_start = commonSkipStart;
+              if (s.skip_end == null) s.skip_end = commonSkipEnd;
+              if (s.outro_start == null) s.outro_start = commonOutroStart;
+            }
+          });
+        }
+
         // Deduplicate servers by URL
         const unique = servers.filter((server, index, self) =>
           index === self.findIndex((t) => t.url === server.url)
