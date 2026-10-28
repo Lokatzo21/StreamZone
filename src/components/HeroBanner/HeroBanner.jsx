@@ -6,6 +6,35 @@ import { useAuth } from '../../contexts/AuthContext';
 import { getOptimizedBackdropUrl } from '../../utils/imageOptimizer';
 import './HeroBanner.css';
 
+const GENRE_TRANSLATIONS = {
+  'action & adventure': 'Acción',
+  'action': 'Acción',
+  'adventure': 'Aventura',
+  'sci-fi & fantasy': 'Ciencia Ficción',
+  'science fiction': 'Ciencia Ficción',
+  'war & politics': 'Bélico',
+  'animation': 'Animación',
+  'animación': 'Animación',
+  'comedy': 'Comedia',
+  'comedia': 'Comedia',
+  'drama': 'Drama',
+  'horror': 'Terror',
+  'mystery': 'Misterio',
+  'misterio': 'Misterio',
+  'thriller': 'Suspenso',
+  'crime': 'Crimen',
+  'family': 'Familiar',
+  'documentary': 'Documental',
+  'romance': 'Romance',
+  'western': 'Western'
+};
+
+const formatGenre = (raw) => {
+  if (!raw) return '';
+  const str = String(raw).trim();
+  return GENRE_TRANSLATIONS[str.toLowerCase()] || str;
+};
+
 const HeroBanner = ({ featuredItems = [] }) => {
   const navigate = useNavigate();
   const { isInMyList, toggleMyList } = useWatchProgress();
@@ -74,7 +103,7 @@ const HeroBanner = ({ featuredItems = [] }) => {
           {current?.genres && current.genres.length > 0 && (
             <div className="hero-genres-row">
               {current.genres.slice(0, 4).map((genre, idx) => (
-                <span key={idx} className="genre-pill">{genre}</span>
+                <span key={idx} className="genre-pill">{formatGenre(genre)}</span>
               ))}
             </div>
           )}

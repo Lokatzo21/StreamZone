@@ -7,6 +7,36 @@ import { useAuth } from '../../contexts/AuthContext';
 import { getOptimizedPosterUrl, getOptimizedBackdropUrl } from '../../utils/imageOptimizer';
 import './ContentCard.css';
 
+const GENRE_TRANSLATIONS = {
+  'action & adventure': 'Acción',
+  'action': 'Acción',
+  'adventure': 'Aventura',
+  'sci-fi & fantasy': 'Ciencia Ficción',
+  'science fiction': 'Ciencia Ficción',
+  'war & politics': 'Bélico',
+  'animation': 'Animación',
+  'animación': 'Animación',
+  'comedy': 'Comedia',
+  'comedia': 'Comedia',
+  'drama': 'Drama',
+  'horror': 'Terror',
+  'mystery': 'Misterio',
+  'misterio': 'Misterio',
+  'thriller': 'Suspenso',
+  'crime': 'Crimen',
+  'family': 'Familiar',
+  'documentary': 'Documental',
+  'romance': 'Romance',
+  'western': 'Western'
+};
+
+const formatCardGenre = (raw) => {
+  if (!raw) return null;
+  const str = String(raw).trim();
+  const lower = str.toLowerCase();
+  return GENRE_TRANSLATIONS[lower] || str;
+};
+
 const ContentCard = ({
   item,
   rank = null,
@@ -26,6 +56,9 @@ const ContentCard = ({
 
   const targetId = item?.id || item?.anime_tmdb_id || item?.tmdb_id;
   const isFav = targetId ? isFavorite(targetId) : false;
+
+  const rawGenre = item?.genres && item.genres.length > 0 ? item.genres[0] : null;
+  const displayGenre = formatCardGenre(rawGenre);
 
   // Optimized poster or backdrop resolution with WPO WebP
   const rawUrl = aspect === 'backdrop'
@@ -52,6 +85,14 @@ const ContentCard = ({
   const handleCardClick = () => {
     if (showHideConfirm) return;
     navigate(`/anime/${item.id}`);
+  };
+
+  const handleMouseEnter = () => {
+    // Only trigger hover styles on devices with an actual mouse cursor (avoids sticky hover on touch)
+    if (typeof window !== 'undefined' && window.matchMedia && !window.matchMedia('(hover: hover)').matches) {
+      return;
+    }
+    setIsHovered(true);
   };
 
   const handleToggleFavorite = (e) => {
@@ -87,7 +128,7 @@ const ContentCard = ({
     <div
       className={`content-card ${aspect} ${rank ? 'has-rank' : ''} ${isHovered ? 'hover-active' : ''} ${isHidingAnim ? 'card-collapsing' : ''}`}
       onClick={handleCardClick}
-      onMouseEnter={() => setIsHovered(true)}
+      onMouseEnter={handleMouseEnter}
       onMouseLeave={() => {
         setIsHovered(false);
         if (showHideConfirm) setShowHideConfirm(false);
@@ -217,15 +258,25 @@ const ContentCard = ({
 
           {/* Symmetrical Title Label Underneath */}
           <div className="card-bottom-label">
-            <h5 className="card-title-text">{item.title}</h5>
+            <h5 className="card-title-text" title={item.title}>{item.title}</h5>
             <div className="card-sub-info-row">
-              <span className="card-sub-type">{item.type || (item.contentType === 'peliculas' ? 'Película' : 'Serie')}</span>
+              <span className="card-sub-type">
+                {item.type || (item.contentType === 'peliculas' || item.isMovie ? 'Película' : 'Serie')}
+              </span>
               {progress ? (
-                <span className="card-sub-progress">
-                  {progress.percentage}% visto
-                </span>
-              ) : item.genres && item.genres.length > 0 ? (
-                <span className="card-sub-genre">{item.genres[0]}</span>
+                <>
+                  <span className="card-sub-dot">•</span>
+                  <span className="card-sub-progress">
+                    {progress.percentage}% visto
+                  </span>
+                </>
+              ) : displayGenre ? (
+                <>
+                  <span className="card-sub-dot">•</span>
+                  <span className="card-sub-genre" title={displayGenre}>
+                    {displayGenre}
+                  </span>
+                </>
               ) : null}
             </div>
           </div>
