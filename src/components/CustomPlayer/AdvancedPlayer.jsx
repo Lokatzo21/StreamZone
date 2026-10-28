@@ -91,6 +91,11 @@ const AdvancedPlayer = React.forwardRef(({
   const [showSkipIntro, setShowSkipIntro] = useState(false);
   const [showNextEpisodePrompt, setShowNextEpisodePrompt] = useState(false);
   const [countdownSeconds, setCountdownSeconds] = useState(null);
+  const countdownIntervalRef = useRef(null);
+  const autoNextTriggeredRef = useRef(false);
+  const shouldAutoPlayRef = useRef(false);
+  const wasFullscreenRef = useRef(false);
+  const [cancelledCountdown, setCancelledCountdown] = useState(false);
 
   // Scrubber hover state
   const [hoverPosition, setHoverPosition] = useState(null);
@@ -162,9 +167,24 @@ const AdvancedPlayer = React.forwardRef(({
   // Poster / Cover art URL for initial state
   const posterUrl = animeInfo?.backdrop || animeInfo?.banner || animeInfo?.image;
 
-  // Reset initial cover on episode/anime change
+  // Reset initial cover or prepare autoplay on episode/anime change
   useEffect(() => {
-    setHasStarted(false);
+    if (shouldAutoPlayRef.current) {
+      setHasStarted(true);
+      setIsPlaying(true);
+      setIsBuffering(true);
+    } else {
+      setHasStarted(false);
+      setIsPlaying(false);
+    }
+    autoNextTriggeredRef.current = false;
+    setCancelledCountdown(false);
+    setShowNextEpisodePrompt(false);
+    setCountdownSeconds(null);
+    if (countdownIntervalRef.current) {
+      clearInterval(countdownIntervalRef.current);
+      countdownIntervalRef.current = null;
+    }
   }, [animeInfo?.id, episodeInfo?.id]);
 
   // Resume timestamp check (skip for live 24/7 streams)
@@ -233,6 +253,74 @@ const AdvancedPlayer = React.forwardRef(({
     }
   }, [servers, onSelectServer]);
 
+  // Next Episode auto-advance handler
+  const handleAdvanceNextEpisode = useCallback(() => {
+    if (autoNextTriggeredRef.current) return;
+    autoNextTriggeredRef.current = true;
+    setShowNextEpisodePrompt(false);
+    setCountdownSeconds(null);
+    if (countdownIntervalRef.current) {
+      clearInterval(countdownIntervalRef.current);
+      countdownIntervalRef.current = null;
+    }
+
+    shouldAutoPlayRef.current = true;
+    wasFullscreenRef.current = Boolean(
+      document.fullscreenElement ||
+      document.webkitFullscreenElement ||
+      isFullscreen
+    );
+
+    if (onNextEpisode) {
+      onNextEpisode();
+    }
+  }, [onNextEpisode, isFullscreen]);
+
+  // Cancel / dismiss auto countdown
+  const handleCancelCountdown = useCallback((e) => {
+    if (e && e.stopPropagation) e.stopPropagation();
+    setCancelledCountdown(true);
+    setShowNextEpisodePrompt(false);
+    setCountdownSeconds(null);
+    if (countdownIntervalRef.current) {
+      clearInterval(countdownIntervalRef.current);
+      countdownIntervalRef.current = null;
+    }
+  }, []);
+
+  // Active 8-second countdown interval effect
+  useEffect(() => {
+    if (countdownSeconds === null || !showNextEpisodePrompt) {
+      if (countdownIntervalRef.current) {
+        clearInterval(countdownIntervalRef.current);
+        countdownIntervalRef.current = null;
+      }
+      return;
+    }
+
+    if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+
+    countdownIntervalRef.current = setInterval(() => {
+      setCountdownSeconds((prev) => {
+        if (prev === null) return null;
+        if (prev <= 1) {
+          clearInterval(countdownIntervalRef.current);
+          countdownIntervalRef.current = null;
+          handleAdvanceNextEpisode();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => {
+      if (countdownIntervalRef.current) {
+        clearInterval(countdownIntervalRef.current);
+        countdownIntervalRef.current = null;
+      }
+    };
+  }, [countdownSeconds, showNextEpisodePrompt, handleAdvanceNextEpisode]);
+
   // Memory Leak Prevention: Complete disposal on component unmount
   useEffect(() => {
     return () => {
@@ -255,6 +343,7 @@ const AdvancedPlayer = React.forwardRef(({
       if (tapTimeoutRef.current) clearTimeout(tapTimeoutRef.current);
       if (feedbackTimeoutRef.current) clearTimeout(feedbackTimeoutRef.current);
       if (failoverNoticeTimeoutRef.current) clearTimeout(failoverNoticeTimeoutRef.current);
+      if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
     };
   }, []);
 
@@ -291,7 +380,29 @@ const AdvancedPlayer = React.forwardRef(({
 
       hls.on(Hls.Events.MANIFEST_PARSED, () => {
         setIsBuffering(false);
-        setIsPlaying(false);
+        if (shouldAutoPlayRef.current) {
+          video.play().then(() => {
+            setIsPlaying(true);
+            setHasStarted(true);
+            shouldAutoPlayRef.current = false;
+          }).catch(() => {
+            video.muted = true;
+            video.play().then(() => {
+              setIsPlaying(true);
+              setHasStarted(true);
+              shouldAutoPlayRef.current = false;
+            }).catch(() => {
+              shouldAutoPlayRef.current = false;
+            });
+          });
+
+          // Ensure fullscreen is kept seamless across episode transition
+          if (wasFullscreenRef.current && !document.fullscreenElement && !document.webkitFullscreenElement) {
+            toggleFullscreen();
+          }
+        } else {
+          setIsPlaying(false);
+        }
       });
 
       hls.on(Hls.Events.ERROR, (_, data) => {
@@ -321,7 +432,30 @@ const AdvancedPlayer = React.forwardRef(({
       // Native MP4 or Safari native HLS
       video.src = streamUrl;
       video.load();
-      setIsPlaying(false);
+      if (shouldAutoPlayRef.current) {
+        video.play().then(() => {
+          setIsPlaying(true);
+          setHasStarted(true);
+          setIsBuffering(false);
+          shouldAutoPlayRef.current = false;
+        }).catch(() => {
+          video.muted = true;
+          video.play().then(() => {
+            setIsPlaying(true);
+            setHasStarted(true);
+            setIsBuffering(false);
+            shouldAutoPlayRef.current = false;
+          }).catch(() => {
+            shouldAutoPlayRef.current = false;
+          });
+        });
+
+        if (wasFullscreenRef.current && !document.fullscreenElement && !document.webkitFullscreenElement) {
+          toggleFullscreen();
+        }
+      } else {
+        setIsPlaying(false);
+      }
     }
 
     return () => {
@@ -330,7 +464,7 @@ const AdvancedPlayer = React.forwardRef(({
         hlsRef.current = null;
       }
     };
-  }, [activeServer?.url, isDirectVideo, isLiveStream, handleStreamFailover]);
+  }, [activeServer?.url, isDirectVideo, isLiveStream, handleStreamFailover, toggleFullscreen]);
 
   // Smart TV stall recovery
   const handleWaiting = () => {
@@ -378,19 +512,29 @@ const AdvancedPlayer = React.forwardRef(({
       setShowSkipIntro(false);
     }
 
-    // Next Episode detection: either by outro_start metadata OR near the end (last 90s, or when user seeks to the end)
-    const isNearEnd = hasNextEpisode && (
-      (activeServer?.outro_start && curr >= activeServer.outro_start) ||
-      (dur > 40 && curr >= dur - 90)
-    );
-    setShowNextEpisodePrompt(Boolean(isNearEnd));
+    // Next Episode detection:
+    // 1. Official outro metadata: curr >= activeServer.outro_start
+    // 2. OR natural end of episode / seeking near end: dur > 20 and curr >= dur - 15
+    const isOutroPoint = Boolean(activeServer?.outro_start && curr >= activeServer.outro_start);
+    const isNearEnd = Boolean(dur > 20 && curr >= dur - 15);
+    const shouldShowNext = hasNextEpisode && (isOutroPoint || isNearEnd) && !cancelledCountdown;
 
-    // Next episode auto countdown during final 15 seconds
-    if (hasNextEpisode && dur > 20 && curr >= dur - 15) {
-      const remaining = Math.max(1, Math.ceil(dur - curr));
-      setCountdownSeconds(remaining);
-    } else {
+    if (shouldShowNext) {
+      setShowNextEpisodePrompt(true);
+
+      // Start 8-second countdown if not already counting down
+      if (countdownSeconds === null && !autoNextTriggeredRef.current) {
+        const remainingUntilEnd = Math.max(1, Math.ceil(dur - curr));
+        const initialCount = isNearEnd && remainingUntilEnd < 8 ? remainingUntilEnd : 8;
+        setCountdownSeconds(initialCount);
+      }
+    } else if (!isOutroPoint && !isNearEnd) {
+      setShowNextEpisodePrompt(false);
       setCountdownSeconds(null);
+      if (countdownIntervalRef.current) {
+        clearInterval(countdownIntervalRef.current);
+        countdownIntervalRef.current = null;
+      }
     }
 
     // Periodically save watching progress (skip if live stream)
@@ -864,7 +1008,9 @@ const AdvancedPlayer = React.forwardRef(({
           onPlaying={handlePlaying}
           onPause={() => setIsPlaying(false)}
           onEnded={() => {
-            if (hasNextEpisode && onNextEpisode) onNextEpisode();
+            if (hasNextEpisode) {
+              handleAdvanceNextEpisode();
+            }
           }}
         />
       ) : (
@@ -1007,20 +1153,39 @@ const AdvancedPlayer = React.forwardRef(({
         </button>
       )}
 
-      {/* Floating Siguiente Episodio Card (Kept visible in clean mode near end / outro) */}
+      {/* Floating Siguiente Episodio Card (Glassmorphic, Compact & Clean with 8s Countdown) */}
       {showNextEpisodePrompt && hasNextEpisode && (
-        <div className="player-next-countdown-card glass-panel fade-in">
+        <div
+          className="player-next-countdown-card glass-panel fade-in"
+          onClick={(e) => e.stopPropagation()}
+        >
           <div className="countdown-info">
             <span className="countdown-label">
-              {countdownSeconds !== null ? `Siguiente Episodio en ${countdownSeconds}s` : '¿Ver siguiente episodio?'}
+              {countdownSeconds !== null ? `Siguiente episodio en ${countdownSeconds}s` : '¿Ver siguiente episodio?'}
             </span>
             <span className="countdown-number">
               {countdownSeconds !== null ? `${countdownSeconds}s` : 'Siguiente'}
             </span>
           </div>
-          <button className="btn-accent countdown-play-now" onClick={onNextEpisode}>
-            <SkipForward size={16} />
-            <span>Siguiente Episodio</span>
+
+          <button
+            type="button"
+            className="btn-accent countdown-play-now"
+            onClick={handleAdvanceNextEpisode}
+            title="Reproducir siguiente ahora"
+          >
+            <SkipForward size={14} />
+            <span>Siguiente</span>
+          </button>
+
+          <button
+            type="button"
+            className="countdown-dismiss-btn"
+            onClick={handleCancelCountdown}
+            title="Cancelar cuenta regresiva"
+            aria-label="Cancelar cuenta regresiva"
+          >
+            <X size={14} />
           </button>
         </div>
       )}
