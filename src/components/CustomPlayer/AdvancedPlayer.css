@@ -402,14 +402,17 @@
   top: calc(100% + 10px);
   right: 0;
   width: 320px;
-  max-height: 400px;
-  overflow-y: auto;
+  max-height: min(340px, 80vh);
   padding: 14px;
   border-radius: 12px;
   background: rgba(10, 13, 24, 0.98);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.15);
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.85), 0 0 20px rgba(0, 0, 0, 0.5);
   z-index: 50;
+  display: flex;
+  flex-direction: column;
 }
 
 .dropdown-header-row {
@@ -483,6 +486,30 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
+  max-height: 220px; /* Comfortably shows ~3.5 servers and smoothly scrolls */
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent-primary) rgba(255, 255, 255, 0.08);
+}
+
+.servers-list::-webkit-scrollbar {
+  width: 5px;
+}
+
+.servers-list::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+
+.servers-list::-webkit-scrollbar-thumb {
+  background: var(--accent-primary);
+  border-radius: 4px;
+}
+
+.servers-list::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-hover);
 }
 
 .server-option-btn {
@@ -887,21 +914,81 @@
 }
 
 /* ==========================================================================
-   Mobile-First Player Calibration (POCO M6 Pro 5G / Responsive Mobile)
+   Mobile-First Player Calibration (Smartphones / Portrait & Landscape)
    ========================================================================== */
 @media (max-width: 768px) {
   .advanced-player-container {
     border-radius: 0;
   }
 
-  /* Safe Area Insets for Notch / Camera Cutout */
-  .player-top-bar {
-    padding: max(12px, env(safe-area-inset-top, 12px)) max(14px, env(safe-area-inset-right, 14px)) 10px max(14px, env(safe-area-inset-left, 14px));
+  /* In non-fullscreen portrait, keep top bar ultra-compact and prevent overlaps */
+  .advanced-player-container:not(.fullscreen) .player-top-bar {
+    padding: 8px 12px;
+    gap: 8px;
+    align-items: flex-start;
   }
 
-  .player-bottom-controls {
-    padding: 8px max(14px, env(safe-area-inset-right, 14px)) max(12px, env(safe-area-inset-bottom, 12px)) max(14px, env(safe-area-inset-left, 14px));
-    background: linear-gradient(0deg, rgba(4, 6, 12, 0.96) 0%, rgba(4, 6, 12, 0.75) 60%, transparent 100%);
+  .advanced-player-container:not(.fullscreen) .player-title-info {
+    flex: 1;
+    min-width: 0;
+    max-width: calc(100% - 110px);
+  }
+
+  .advanced-player-container:not(.fullscreen) .player-anime-title {
+    font-size: 0.85rem !important;
+    font-weight: 700;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    line-height: 1.2;
+  }
+
+  .advanced-player-container:not(.fullscreen) .player-episode-subtitle {
+    font-size: 0.68rem !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    line-height: 1.1;
+    margin-top: 1px;
+  }
+
+  .advanced-player-container:not(.fullscreen) .player-top-actions {
+    flex-shrink: 0;
+  }
+
+  .advanced-player-container:not(.fullscreen) .player-server-pill-btn {
+    padding: 4px 8px !important;
+    font-size: 0.72rem !important;
+    gap: 4px !important;
+    min-height: 28px !important;
+    border-radius: 8px !important;
+  }
+
+  .advanced-player-container:not(.fullscreen) .player-server-pill-btn svg {
+    width: 13px !important;
+    height: 13px !important;
+  }
+
+  .advanced-player-container:not(.fullscreen) .server-lang-badge {
+    font-size: 0.62rem !important;
+    padding: 1px 4px !important;
+  }
+
+  /* Center play button: Compact on mobile so it never collides with title or scrubber */
+  .player-center-action-btn {
+    width: 48px !important;
+    height: 48px !important;
+  }
+
+  .player-center-action-btn svg {
+    width: 24px !important;
+    height: 24px !important;
+  }
+
+  /* Bottom Controls: Compact and perfectly fitted */
+  .advanced-player-container:not(.fullscreen) .player-bottom-controls {
+    padding: 4px 10px 8px 10px !important;
+    background: linear-gradient(0deg, rgba(4, 6, 12, 0.96) 0%, rgba(4, 6, 12, 0.7) 70%, transparent 100%);
   }
 
   /* Reveal dedicated Scrubber Time Row on Mobile */
@@ -910,10 +997,10 @@
     align-items: center;
     justify-content: space-between;
     width: 100%;
-    margin-bottom: 2px;
+    margin-bottom: 0;
     padding: 0 2px;
     font-family: var(--font-display);
-    font-size: 0.8rem;
+    font-size: 0.7rem;
     font-weight: 700;
   }
 
@@ -927,31 +1014,31 @@
 
   /* Thicker, thumb-friendly Scrubber */
   .player-scrubber-wrapper {
-    height: 28px;
-    padding: 6px 0;
+    height: 22px;
+    padding: 4px 0;
   }
 
   .scrubber-track-background {
-    height: 7px;
+    height: 5px;
     border-radius: 4px;
   }
 
   .scrubber-handle-thumb {
-    width: 18px;
-    height: 18px;
-    opacity: 1 !important; /* Always visible on mobile for easy thumb tracking */
+    width: 14px;
+    height: 14px;
+    opacity: 1 !important;
     background: #fff;
     box-shadow: 0 0 10px rgba(255, 107, 0, 0.8), 0 2px 6px rgba(0, 0, 0, 0.7);
     border: 2px solid var(--accent-primary);
   }
 
   .scrubber-range-input {
-    height: 38px;
+    height: 30px;
   }
 
   /* Controls Row: Clean, uncluttered layout */
   .player-controls-row {
-    margin-top: 4px;
+    margin-top: 2px;
   }
 
   /* Hide desktop-only cluttered buttons on mobile */
@@ -969,15 +1056,20 @@
 
   .controls-group-left,
   .controls-group-right {
-    gap: 8px;
+    gap: 6px;
   }
 
   .control-btn {
-    width: 44px;
-    height: 44px;
-    min-width: 44px;
-    min-height: 44px;
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    min-height: 36px;
     border-radius: 50%;
+  }
+
+  .control-btn svg {
+    width: 18px;
+    height: 18px;
   }
 
   .control-btn:active {
@@ -998,42 +1090,122 @@
   }
 
   .player-servers-dropdown {
-    position: fixed;
-    top: calc(60px + env(safe-area-inset-top, 10px));
-    right: 14px;
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
     left: auto;
-    width: min(290px, 88vw);
-    max-height: 60vh;
-    overflow-y: auto;
+    width: min(280px, 86vw);
+    max-height: min(250px, 55vh);
+    padding: 10px 12px;
     z-index: 100;
+  }
+
+  .player-servers-dropdown .servers-list {
+    max-height: 160px;
+    gap: 5px;
+  }
+
+  .player-servers-dropdown .server-option-btn {
+    padding: 7px 10px;
+    min-height: 38px;
+  }
+
+  .player-servers-dropdown .server-opt-name {
+    font-size: 0.8rem;
+  }
+
+  .player-servers-dropdown .server-opt-desc {
+    font-size: 0.65rem;
   }
 
   /* Floating skip intro button */
   .floating-skip-btn {
-    right: 16px;
-    bottom: 84px;
-    padding: 9px 18px;
-    font-size: 0.86rem;
-    min-height: 44px;
-  }
-
-  .player-center-action-btn {
-    width: 64px;
-    height: 64px;
+    right: 12px;
+    bottom: 64px;
+    padding: 6px 14px;
+    font-size: 0.78rem;
+    min-height: 36px;
   }
 }
 
-/* Fullscreen safe area calibration */
+/* ==========================================================================
+   Fullscreen Mode (Edge-to-edge pure video, no borders/glows, notch safe)
+   ========================================================================== */
+.advanced-player-container.fullscreen,
+.advanced-player-container:fullscreen,
+.advanced-player-container:-webkit-full-screen,
+.advanced-player-container:-moz-full-screen,
+.advanced-player-container:-ms-fullscreen {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+}
+
 .advanced-player-container.fullscreen .player-top-bar {
-  padding-top: max(18px, env(safe-area-inset-top, 18px));
-  padding-left: max(24px, env(safe-area-inset-left, 24px));
-  padding-right: max(24px, env(safe-area-inset-right, 24px));
+  padding-top: max(16px, env(safe-area-inset-top, 16px));
+  padding-left: max(20px, env(safe-area-inset-left, 20px));
+  padding-right: max(20px, env(safe-area-inset-right, 20px));
+}
+
+.advanced-player-container.fullscreen .player-title-info {
+  max-width: 65%;
+}
+
+.advanced-player-container.fullscreen .player-anime-title {
+  font-size: 1.15rem !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.advanced-player-container.fullscreen .player-episode-subtitle {
+  font-size: 0.82rem !important;
 }
 
 .advanced-player-container.fullscreen .player-bottom-controls {
-  padding-bottom: max(20px, env(safe-area-inset-bottom, 20px));
-  padding-left: max(24px, env(safe-area-inset-left, 24px));
-  padding-right: max(24px, env(safe-area-inset-right, 24px));
+  padding-bottom: max(16px, env(safe-area-inset-bottom, 16px));
+  padding-left: max(20px, env(safe-area-inset-left, 20px));
+  padding-right: max(20px, env(safe-area-inset-right, 20px));
+}
+
+.advanced-player-container.fullscreen .player-center-action-btn {
+  width: 60px !important;
+  height: 60px !important;
+}
+
+.advanced-player-container.fullscreen .player-center-action-btn svg {
+  width: 30px !important;
+  height: 30px !important;
+}
+
+.advanced-player-container.fullscreen .control-btn {
+  width: 42px !important;
+  height: 42px !important;
+}
+
+/* ==========================================================================
+   Smart TV (Tizen OS / WebOS) Remote Focus & Spatial Navigation
+   ========================================================================== */
+.device-tv .control-btn:focus,
+.device-tv .control-btn:focus-visible,
+.device-tv .player-server-pill-btn:focus,
+.device-tv .player-server-pill-btn:focus-visible,
+.device-tv .server-option-btn:focus,
+.device-tv .server-option-btn:focus-visible,
+.device-tv .toolbar-btn:focus,
+.device-tv .toolbar-btn:focus-visible,
+.device-tv .player-center-action-btn:focus,
+.device-tv .player-center-action-btn:focus-visible,
+.tv-mode .control-btn:focus,
+.tv-mode .player-server-pill-btn:focus,
+.tv-mode .server-option-btn:focus,
+.tv-mode .toolbar-btn:focus,
+.tv-mode .player-center-action-btn:focus {
+  outline: 3px solid var(--accent-primary) !important;
+  outline-offset: 3px !important;
+  box-shadow: 0 0 20px var(--accent-primary) !important;
+  transform: scale(1.08) !important;
 }
 
 /* ==========================================================================

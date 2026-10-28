@@ -315,7 +315,7 @@ const Watch = () => {
             )}
 
             <button
-              className="toolbar-btn"
+              className="toolbar-btn shortcuts-btn"
               onClick={() => setShowShortcutsHelp(true)}
               title="Atajos de teclado en PC"
             >
