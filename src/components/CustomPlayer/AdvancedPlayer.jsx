@@ -288,7 +288,7 @@ const AdvancedPlayer = React.forwardRef(({
     }
   }, []);
 
-  // Active 8-second countdown interval effect
+  // Active 5-second countdown interval effect
   useEffect(() => {
     if (countdownSeconds === null || !showNextEpisodePrompt) {
       if (countdownIntervalRef.current) {
@@ -577,10 +577,10 @@ const AdvancedPlayer = React.forwardRef(({
     if (shouldShowNext) {
       setShowNextEpisodePrompt(true);
 
-      // Start 8-second countdown if not already counting down
+      // Start 5-second countdown if not already counting down
       if (countdownSeconds === null && !autoNextTriggeredRef.current) {
         const remainingUntilEnd = Math.max(1, Math.ceil(dur - curr));
-        const initialCount = isNearEnd && remainingUntilEnd < 8 ? remainingUntilEnd : 8;
+        const initialCount = isNearEnd && remainingUntilEnd < 5 ? remainingUntilEnd : 5;
         setCountdownSeconds(initialCount);
       }
     } else if (!isOutroPoint && !isNearEnd) {
@@ -1155,7 +1155,7 @@ const AdvancedPlayer = React.forwardRef(({
         </button>
       )}
 
-      {/* Floating Siguiente Episodio Card (Glassmorphic, Compact & Clean with 8s Countdown) */}
+      {/* Floating Siguiente Episodio Card (Glassmorphic, Compact & Clean with 5s Countdown) */}
       {showNextEpisodePrompt && hasNextEpisode && (
         <div
           className="player-next-countdown-card glass-panel fade-in"
