@@ -1232,3 +1232,418 @@
 .controls-hidden .player-next-countdown-card {
   bottom: 24px !important;
 }
+
+/* ==========================================================================
+   Streaming Failover Toast & Error View
+   ========================================================================== */
+.player-failover-toast {
+  position: absolute;
+  top: 76px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 20px;
+  border-radius: 30px;
+  background: rgba(15, 20, 32, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1.5px solid #f59e0b;
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 0.88rem;
+  font-weight: 700;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.85), 0 0 25px rgba(245, 158, 11, 0.3);
+  z-index: 55;
+  pointer-events: none;
+  animation: toastSlideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+}
+
+@keyframes toastSlideDown {
+  from { opacity: 0; transform: translate(-50%, -12px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+.toast-icon-warning {
+  color: #f59e0b;
+  flex-shrink: 0;
+  animation: pulseWarning 1.5s infinite ease-in-out;
+}
+
+@keyframes pulseWarning {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
+
+.player-error-fallback-view {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at center, #0e1424 0%, #060912 100%);
+  z-index: 24;
+  padding: 24px;
+}
+
+.player-error-card {
+  max-width: 440px;
+  width: 100%;
+  padding: 28px 24px;
+  text-align: center;
+  background: rgba(13, 17, 30, 0.96);
+  border: 1.5px solid rgba(255, 107, 0, 0.35);
+  border-radius: 18px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9), 0 0 30px rgba(255, 107, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.error-icon-circle {
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  background: rgba(255, 107, 0, 0.15);
+  border: 1.5px solid rgba(255, 107, 0, 0.4);
+  color: var(--accent-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 20px rgba(255, 107, 0, 0.25);
+}
+
+.error-card-title {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 8px;
+}
+
+.error-card-desc {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin-bottom: 22px;
+}
+
+.error-card-actions {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.error-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+/* ==========================================================================
+   Mobile Bottom Sheet (Native Mobile UX / Netflix & YouTube Style)
+   ========================================================================== */
+.mobile-bottom-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(3, 5, 12, 0.78);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  z-index: 99998;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  animation: sheetFadeIn 0.22s ease-out;
+}
+
+/* While in OS fullscreen, align backdrop to fullscreen container */
+.advanced-player-container.fullscreen .mobile-bottom-sheet-backdrop {
+  position: absolute;
+}
+
+@keyframes sheetFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.mobile-bottom-sheet-panel {
+  position: relative;
+  width: 100%;
+  max-width: 580px;
+  background: rgba(12, 16, 28, 0.98);
+  border-radius: 22px 22px 0 0;
+  border-top: 1.5px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.95), 0 0 30px rgba(0, 0, 0, 0.8);
+  z-index: 99999;
+  padding: 12px 18px max(24px, env(safe-area-inset-bottom, 24px)) 18px;
+  max-height: 72vh;
+  display: flex;
+  flex-direction: column;
+  animation: slideUpSheet 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUpSheet {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.sheet-grab-handle {
+  width: 44px;
+  height: 4.5px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.28);
+  margin: 0 auto 14px auto;
+  flex-shrink: 0;
+}
+
+.sheet-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  margin-bottom: 12px;
+  flex-shrink: 0;
+}
+
+.sheet-title-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sheet-title-icon {
+  color: var(--accent-primary);
+  flex-shrink: 0;
+}
+
+.sheet-main-title {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #fff;
+  margin: 0;
+}
+
+.sheet-badge-count {
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--accent-primary);
+  background: rgba(255, 107, 0, 0.16);
+  border: 1px solid rgba(255, 107, 0, 0.35);
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+.sheet-close-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.sheet-close-btn:active {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  transform: scale(0.92);
+}
+
+.sheet-lang-tabs-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+  flex-shrink: 0;
+}
+
+.sheet-lang-tabs-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.sheet-lang-pill {
+  padding: 7px 14px;
+  border-radius: 16px;
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.sheet-lang-pill.active {
+  background: var(--accent-primary);
+  color: #fff;
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 12px var(--accent-glow);
+}
+
+.sheet-servers-scroll-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+  max-height: 48vh;
+  padding-right: 2px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent-primary) rgba(255, 255, 255, 0.08);
+}
+
+.sheet-server-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  min-height: 52px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1.5px solid rgba(255, 255, 255, 0.09);
+  color: #fff;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-align: left;
+}
+
+.sheet-server-card:active {
+  background: rgba(255, 255, 255, 0.12);
+  transform: scale(0.98);
+}
+
+.sheet-server-card.active {
+  background: rgba(255, 107, 0, 0.14);
+  border-color: var(--accent-primary);
+  box-shadow: 0 4px 20px rgba(255, 107, 0, 0.25);
+}
+
+.sheet-server-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sheet-server-name {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.sheet-server-desc {
+  font-size: 0.74rem;
+  color: var(--text-secondary);
+}
+
+.sheet-server-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.sheet-tag {
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 3px 7px;
+  border-radius: 6px;
+}
+
+.sheet-tag.mp4 {
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.35);
+}
+
+.sheet-tag.hls {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+}
+
+.sheet-tag.lang {
+  background: rgba(255, 107, 0, 0.2);
+  color: #ff9d42;
+  border: 1px solid rgba(255, 107, 0, 0.35);
+}
+
+.sheet-active-check {
+  color: var(--accent-primary);
+  display: flex;
+  align-items: center;
+  margin-left: 4px;
+}
+
+/* Sheet speed options grid */
+.sheet-speed-options-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.sheet-speed-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1.5px solid rgba(255, 255, 255, 0.09);
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.sheet-speed-btn:active {
+  background: rgba(255, 255, 255, 0.12);
+  transform: scale(0.97);
+}
+
+.sheet-speed-btn.active {
+  background: rgba(255, 107, 0, 0.14);
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+  box-shadow: 0 4px 18px rgba(255, 107, 0, 0.2);
+}
+
+/* TV Focus Outline for Sheet Buttons */
+.device-tv .sheet-server-card:focus,
+.device-tv .sheet-server-card:focus-visible,
+.device-tv .sheet-speed-btn:focus,
+.device-tv .sheet-speed-btn:focus-visible,
+.tv-mode .sheet-server-card:focus,
+.tv-mode .sheet-speed-btn:focus {
+  outline: 3px solid var(--accent-primary) !important;
+  outline-offset: 2px !important;
+  transform: scale(1.03) !important;
+  background: rgba(255, 107, 0, 0.22) !important;
+}

@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import Hls from 'hls.js';
 import {
   Play, Pause, RotateCcw, RotateCw, Volume2, VolumeX,
   Maximize, Minimize, Settings, SkipForward, ArrowRight,
-  Server, FastForward, Tv, Check, Eye, EyeOff
+  Server, FastForward, Tv, Check, Eye, EyeOff,
+  AlertTriangle, WifiOff, RefreshCw, X
 } from 'lucide-react';
 import { useWatchProgress } from '../../contexts/WatchProgressContext';
 import './AdvancedPlayer.css';
@@ -94,6 +96,35 @@ const AdvancedPlayer = React.forwardRef(({
   const [hoverPosition, setHoverPosition] = useState(null);
   const [hoverTime, setHoverTime] = useState(0);
 
+  // Responsive Viewport Detection (Mobile vs Desktop / TV)
+  const [isMobileView, setIsMobileView] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.innerWidth <= 768;
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobileView(window.innerWidth <= 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Streaming Failover & Error Handling states
+  const failedServersRef = useRef(new Set());
+  const networkRetryRef = useRef(false);
+  const failoverNoticeTimeoutRef = useRef(null);
+  const [failoverNotice, setFailoverNotice] = useState(null);
+  const [allServersFailed, setAllServersFailed] = useState(false);
+
+  // Reset failover state on episode or anime switch
+  useEffect(() => {
+    failedServersRef.current.clear();
+    networkRetryRef.current = false;
+    setAllServersFailed(false);
+    setFailoverNotice(null);
+  }, [animeInfo?.id, episodeInfo?.id]);
+
   // Server language filtering inside dropdown
   const [selectedServerLangFilter, setSelectedServerLangFilter] = useState('all');
 
@@ -152,6 +183,81 @@ const AdvancedPlayer = React.forwardRef(({
     }
   }, [animeInfo?.id, episodeInfo?.id, isLiveStream]);
 
+  // Stream failover & resilience handler
+  const handleStreamFailover = useCallback((failedUrl, reason = '') => {
+    if (!failedUrl) return;
+    console.warn(`[StreamZona Failover] Server failure detected on: ${failedUrl} (${reason})`);
+    failedServersRef.current.add(failedUrl);
+
+    // Find alternative servers that haven't failed yet
+    const remainingServers = (servers || []).filter(s => s?.url && !failedServersRef.current.has(s.url));
+
+    if (remainingServers.length > 0) {
+      // Prioritize same audio language track if available
+      const sameLang = remainingServers.filter(s => s.lang === activeServer?.lang);
+      const nextServer = sameLang.length > 0 ? sameLang[0] : remainingServers[0];
+
+      setFailoverNotice(`Error en servidor actual. Cambiando a "${nextServer.name}"...`);
+      if (failoverNoticeTimeoutRef.current) clearTimeout(failoverNoticeTimeoutRef.current);
+      failoverNoticeTimeoutRef.current = setTimeout(() => {
+        setFailoverNotice(null);
+      }, 4000);
+
+      onSelectServer(nextServer);
+    } else {
+      // All servers for this title have failed or no servers available
+      setAllServersFailed(true);
+      setIsBuffering(false);
+      setIsPlaying(false);
+    }
+  }, [servers, activeServer, onSelectServer]);
+
+  // Video element error event listener
+  const handleVideoError = useCallback(() => {
+    const video = videoRef.current;
+    const err = video?.error;
+    console.warn('Video element error encountered:', err?.code, err?.message);
+    if (activeServer?.url) {
+      handleStreamFailover(activeServer.url, `Video Error Code ${err?.code || 'unknown'}`);
+    }
+  }, [activeServer?.url, handleStreamFailover]);
+
+  // Manual retry connection
+  const handleRetryAllServers = useCallback(() => {
+    failedServersRef.current.clear();
+    networkRetryRef.current = false;
+    setAllServersFailed(false);
+    setIsBuffering(true);
+    if (servers && servers.length > 0) {
+      onSelectServer(servers[0]);
+    }
+  }, [servers, onSelectServer]);
+
+  // Memory Leak Prevention: Complete disposal on component unmount
+  useEffect(() => {
+    return () => {
+      const video = videoRef.current;
+      if (video) {
+        try {
+          video.pause();
+          video.removeAttribute('src');
+          video.load();
+        } catch (e) {}
+      }
+      if (hlsRef.current) {
+        try {
+          hlsRef.current.destroy();
+          hlsRef.current = null;
+        } catch (e) {}
+      }
+      if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
+      if (stallTimeoutRef.current) clearTimeout(stallTimeoutRef.current);
+      if (tapTimeoutRef.current) clearTimeout(tapTimeoutRef.current);
+      if (feedbackTimeoutRef.current) clearTimeout(feedbackTimeoutRef.current);
+      if (failoverNoticeTimeoutRef.current) clearTimeout(failoverNoticeTimeoutRef.current);
+    };
+  }, []);
+
   // Video source loading & HLS setup
   useEffect(() => {
     const video = videoRef.current;
@@ -192,13 +298,21 @@ const AdvancedPlayer = React.forwardRef(({
         if (data.fatal) {
           switch (data.type) {
             case Hls.ErrorTypes.NETWORK_ERROR:
-              hls.startLoad();
+              if (!networkRetryRef.current) {
+                networkRetryRef.current = true;
+                hls.startLoad();
+              } else {
+                networkRetryRef.current = false;
+                hls.destroy();
+                handleStreamFailover(streamUrl, 'HLS Network Fatal Error');
+              }
               break;
             case Hls.ErrorTypes.MEDIA_ERROR:
               hls.recoverMediaError();
               break;
             default:
               hls.destroy();
+              handleStreamFailover(streamUrl, 'HLS Fatal Error');
               break;
           }
         }
@@ -216,7 +330,7 @@ const AdvancedPlayer = React.forwardRef(({
         hlsRef.current = null;
       }
     };
-  }, [activeServer?.url, isDirectVideo]);
+  }, [activeServer?.url, isDirectVideo, isLiveStream, handleStreamFailover]);
 
   // Smart TV stall recovery
   const handleWaiting = () => {
@@ -298,18 +412,18 @@ const AdvancedPlayer = React.forwardRef(({
 
   const effectiveControlsVisible = externalControlsVisible && controlsVisible;
 
-  // Control bar auto-hide after 2 seconds of inactivity while playing
+  // Control bar auto-hide after 2 seconds of inactivity while playing (paused when menus are open)
   const resetControlsTimeout = useCallback(() => {
     setControlsVisible(true);
     if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
-    if (isPlaying && externalControlsVisible) {
+    if (isPlaying && externalControlsVisible && !showServerMenu && !showSettingsMenu) {
       controlsTimeoutRef.current = setTimeout(() => {
         setControlsVisible(false);
         setShowSettingsMenu(false);
         setShowServerMenu(false);
       }, 2000);
     }
-  }, [isPlaying, externalControlsVisible]);
+  }, [isPlaying, externalControlsVisible, showServerMenu, showSettingsMenu]);
 
   // Handle mouse move on player container: ignores jitter right after click-to-hide
   const handleContainerMouseMove = useCallback((e) => {
@@ -686,19 +800,61 @@ const AdvancedPlayer = React.forwardRef(({
   const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
   const bufferPercent = duration > 0 ? (bufferedTime / duration) * 100 : 0;
 
+  // Portal target for mobile bottom sheets (escapes overflow:hidden while maintaining fullscreen visibility)
+  const portalTarget = typeof document !== 'undefined'
+    ? ((isFullscreen && containerRef.current) ? containerRef.current : document.body)
+    : null;
+
   return (
     <div
       ref={containerRef}
       className={`advanced-player-container ${effectiveControlsVisible ? 'controls-active' : 'controls-hidden'} ${isFullscreen ? 'fullscreen' : ''}`}
       onMouseMove={handleContainerMouseMove}
     >
-      {/* Video Engine: Native Video Player for MP4 / HLS */}
-      {isDirectVideo ? (
+      {/* Video Engine: Failover Error View / Direct Video / Embed Fallback */}
+      {allServersFailed || !activeServer?.url ? (
+        <div className="player-error-fallback-view fade-in">
+          <div className="player-error-card glass-panel">
+            <div className="error-icon-circle">
+              <WifiOff size={32} />
+            </div>
+            <h3 className="error-card-title">Servidor no disponible</h3>
+            <p className="error-card-desc">
+              {servers.length === 0 || !activeServer?.url
+                ? 'No hay servidores configurados para este contenido todavía.'
+                : 'No se pudo conectar con el servidor actual o el enlace ha expirado.'}
+            </p>
+            <div className="error-card-actions">
+              {servers.length > 1 && (
+                <button
+                  type="button"
+                  className="btn-accent error-action-btn"
+                  onClick={handleRetryAllServers}
+                >
+                  <RefreshCw size={16} />
+                  <span>Reintentar Conexión</span>
+                </button>
+              )}
+              {servers.length > 0 && (
+                <button
+                  type="button"
+                  className="btn-secondary error-action-btn"
+                  onClick={() => setShowServerMenu(true)}
+                >
+                  <Server size={16} />
+                  <span>Elegir otro servidor ({servers.length})</span>
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : isDirectVideo ? (
         <video
           ref={videoRef}
           className="advanced-video-element"
           poster={posterUrl}
           playsInline
+          onError={handleVideoError}
           onPlay={() => {
             setIsPlaying(true);
             setHasStarted(true);
@@ -720,6 +876,14 @@ const AdvancedPlayer = React.forwardRef(({
           allowFullScreen
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         />
+      )}
+
+      {/* Dynamic Server Failover Toast Notification */}
+      {failoverNotice && (
+        <div className="player-failover-toast fade-in">
+          <AlertTriangle size={18} className="toast-icon-warning" />
+          <span>{failoverNotice}</span>
+        </div>
       )}
 
       {/* Transparent Gesture Layer: Single tap toggles UI, Double tap left/right seeks ±10s */}
@@ -898,8 +1062,8 @@ const AdvancedPlayer = React.forwardRef(({
             <span className="server-lang-badge">{activeServer?.lang || 'SUB'}</span>
           </button>
 
-          {/* Server Dropdown (Clean, multi-server & multi-language responsive) */}
-          {showServerMenu && (
+          {/* Desktop Server Dropdown (Clean Popover) */}
+          {!isMobileView && showServerMenu && (
             <div className="player-servers-dropdown glass-panel fade-in" onClick={e => e.stopPropagation()}>
               <div className="dropdown-header-row">
                 <h4 className="dropdown-title">Servidores Disponibles</h4>
@@ -929,7 +1093,7 @@ const AdvancedPlayer = React.forwardRef(({
               <div className="servers-list">
                 {filteredDropdownServers.map((srv, idx) => (
                   <button
-                    key={idx}
+                    key={srv.url || idx}
                     className={`server-option-btn ${activeServer?.url === srv.url ? 'active' : ''}`}
                     onClick={() => {
                       onSelectServer(srv);
@@ -953,6 +1117,90 @@ const AdvancedPlayer = React.forwardRef(({
           )}
         </div>
       </div>
+
+      {/* Mobile Bottom Sheet for Servers (Escapes Player Container via Portal) */}
+      {isMobileView && showServerMenu && portalTarget && createPortal(
+        <div
+          className="mobile-bottom-sheet-backdrop fade-in"
+          onClick={() => setShowServerMenu(false)}
+        >
+          <div
+            className="mobile-bottom-sheet-panel glass-panel"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="sheet-grab-handle" />
+
+            <div className="sheet-header-row">
+              <div className="sheet-title-info">
+                <Server size={20} className="sheet-title-icon" />
+                <h3 className="sheet-main-title">Servidores Disponibles</h3>
+                <span className="sheet-badge-count">{filteredDropdownServers.length}</span>
+              </div>
+              <button
+                className="sheet-close-btn"
+                onClick={() => setShowServerMenu(false)}
+                aria-label="Cerrar panel de servidores"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {availableServerLangs.length > 1 && (
+              <div className="sheet-lang-tabs-bar">
+                <button
+                  className={`sheet-lang-pill ${selectedServerLangFilter === 'all' ? 'active' : ''}`}
+                  onClick={() => setSelectedServerLangFilter('all')}
+                >
+                  Todos
+                </button>
+                {availableServerLangs.map(lang => (
+                  <button
+                    key={lang}
+                    className={`sheet-lang-pill ${selectedServerLangFilter === lang ? 'active' : ''}`}
+                    onClick={() => setSelectedServerLangFilter(lang)}
+                  >
+                    {lang === 'latino' ? 'Latino' : lang === 'castellano' ? 'Castellano' : lang === 'sub' ? 'Sub' : lang.toUpperCase()}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            <div className="sheet-servers-scroll-list">
+              {filteredDropdownServers.map((srv, idx) => {
+                const isActive = activeServer?.url === srv.url;
+                return (
+                  <button
+                    key={srv.url || idx}
+                    className={`sheet-server-card ${isActive ? 'active' : ''}`}
+                    onClick={() => {
+                      onSelectServer(srv);
+                      setShowServerMenu(false);
+                    }}
+                  >
+                    <div className="sheet-server-left">
+                      <span className="sheet-server-name">{srv.name}</span>
+                      <span className="sheet-server-desc">
+                        {srv.description || (srv.lang ? `Audio ${srv.lang.toUpperCase()}` : 'Servidor de Streaming')}
+                      </span>
+                    </div>
+                    <div className="sheet-server-right">
+                      {srv.isDirectMp4 && <span className="sheet-tag mp4">MP4</span>}
+                      {srv.isHls && <span className="sheet-tag hls">HLS</span>}
+                      {srv.lang && <span className="sheet-tag lang">{srv.lang?.toUpperCase()}</span>}
+                      {isActive && (
+                        <div className="sheet-active-check">
+                          <Check size={18} />
+                        </div>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>,
+        portalTarget
+      )}
 
       {/* Bottom Custom Controls Bar */}
       {isDirectVideo && (
@@ -1113,7 +1361,8 @@ const AdvancedPlayer = React.forwardRef(({
                   <Settings size={20} />
                 </button>
 
-                {showSettingsMenu && (
+                {/* Desktop Settings / Speed Popover */}
+                {!isMobileView && showSettingsMenu && (
                   <div className="player-settings-dropdown glass-panel fade-in">
                     <h5 className="settings-heading">Velocidad de reproducción</h5>
                     <div className="speed-options-grid">
@@ -1134,8 +1383,6 @@ const AdvancedPlayer = React.forwardRef(({
                 )}
               </div>
 
-
-
               {/* Fullscreen Toggle */}
               <button
                 className="control-btn fullscreen-btn"
@@ -1148,6 +1395,52 @@ const AdvancedPlayer = React.forwardRef(({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Mobile Bottom Sheet for Settings / Speed (Escapes Player Container via Portal) */}
+      {isMobileView && showSettingsMenu && portalTarget && createPortal(
+        <div
+          className="mobile-bottom-sheet-backdrop fade-in"
+          onClick={() => setShowSettingsMenu(false)}
+        >
+          <div
+            className="mobile-bottom-sheet-panel glass-panel"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="sheet-grab-handle" />
+
+            <div className="sheet-header-row">
+              <div className="sheet-title-info">
+                <Settings size={20} className="sheet-title-icon" />
+                <h3 className="sheet-main-title">Velocidad de Reproducción</h3>
+              </div>
+              <button
+                className="sheet-close-btn"
+                onClick={() => setShowSettingsMenu(false)}
+                aria-label="Cerrar panel de velocidad"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="sheet-speed-options-grid">
+              {[0.5, 0.75, 1, 1.25, 1.5, 2].map((speed) => (
+                <button
+                  key={speed}
+                  className={`sheet-speed-btn ${playbackSpeed === speed ? 'active' : ''}`}
+                  onClick={() => {
+                    setPlaybackSpeed(speed);
+                    setShowSettingsMenu(false);
+                  }}
+                >
+                  <span className="speed-num">{speed === 1 ? 'Normal (1.0x)' : `${speed}x`}</span>
+                  {playbackSpeed === speed && <Check size={18} className="sheet-check" />}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>,
+        portalTarget
       )}
     </div>
   );
