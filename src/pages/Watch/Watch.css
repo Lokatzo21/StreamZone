@@ -22,20 +22,19 @@
   -webkit-backdrop-filter: blur(14px);
 }
 
-/* ONLY the video player container remains razor sharp and illuminated (ONLY WHEN NOT IN FULLSCREEN) */
-.theater-mode-active .advanced-player-container:not(.fullscreen):not(:fullscreen):not(:-webkit-full-screen):not(:-moz-full-screen):not(:-ms-fullscreen) {
+/* In Theater Mode, ALWAYS elevate the video player above the dark backdrop */
+.theater-mode-active .advanced-player-container {
   position: relative;
   z-index: 80;
+}
+
+/* Orange neon border & ambient glow apply ONLY when NOT in fullscreen */
+.theater-mode-active .advanced-player-container:not(.fullscreen) {
   box-shadow: 0 0 80px rgba(0, 0, 0, 0.98), 0 0 45px var(--accent-glow);
   border: 1px solid rgba(255, 107, 0, 0.5);
 }
 
-/* Fullscreen mode MUST NOT have any border, glow, or outline even in theater mode */
-.theater-mode-active .advanced-player-container.fullscreen,
-.theater-mode-active .advanced-player-container:fullscreen,
-.theater-mode-active .advanced-player-container:-webkit-full-screen,
-.theater-mode-active .advanced-player-container:-moz-full-screen,
-.theater-mode-active .advanced-player-container:-ms-fullscreen,
+/* Fullscreen mode: clean edge-to-edge pure video, no border/glow */
 .advanced-player-container.fullscreen,
 .advanced-player-container:fullscreen {
   border: none !important;

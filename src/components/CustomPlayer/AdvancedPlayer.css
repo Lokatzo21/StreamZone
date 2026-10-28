@@ -12,9 +12,7 @@
 
 /* Native Fullscreen Pseudo-classes (Strictly active ONLY while in OS fullscreen) */
 .advanced-player-container:fullscreen,
-.advanced-player-container:-webkit-full-screen,
-.advanced-player-container:-moz-full-screen,
-.advanced-player-container:-ms-fullscreen {
+.advanced-player-container.fullscreen {
   border-radius: 0 !important;
   width: 100vw !important;
   height: 100vh !important;
@@ -1132,10 +1130,7 @@
    Fullscreen Mode (Edge-to-edge pure video, no borders/glows, notch safe)
    ========================================================================== */
 .advanced-player-container.fullscreen,
-.advanced-player-container:fullscreen,
-.advanced-player-container:-webkit-full-screen,
-.advanced-player-container:-moz-full-screen,
-.advanced-player-container:-ms-fullscreen {
+.advanced-player-container:fullscreen {
   border: none !important;
   outline: none !important;
   box-shadow: none !important;
