@@ -834,19 +834,19 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  pointer-events: none;
+  pointer-events: none !important;
   transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .player-center-play-overlay.visible {
   opacity: 1;
-  pointer-events: auto;
+  pointer-events: none !important;
   transform: scale(1);
 }
 
 .player-center-play-overlay.hidden {
   opacity: 0;
-  pointer-events: none;
+  pointer-events: none !important;
   transform: scale(0.85);
 }
 
@@ -864,7 +864,10 @@
   justify-content: center;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8), 0 0 25px var(--accent-glow);
   cursor: pointer;
-  transition: all var(--transition-fast);
+  pointer-events: auto !important;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s ease, border-color 0.2s ease;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .player-center-action-btn:hover {

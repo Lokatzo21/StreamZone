@@ -76,6 +76,8 @@ const AdvancedPlayer = React.forwardRef(({
   const tapTimeoutRef = useRef(null);
   const feedbackTimeoutRef = useRef(null);
   const lastTapRef = useRef({ time: 0, x: 0 });
+  const lastManualToggleRef = useRef(0);
+  const lastMousePosRef = useRef({ x: 0, y: 0 });
 
   // Modals & Popovers
   const [showSettingsMenu, setShowSettingsMenu] = useState(false);
@@ -296,7 +298,7 @@ const AdvancedPlayer = React.forwardRef(({
 
   const effectiveControlsVisible = externalControlsVisible && controlsVisible;
 
-  // Control bar auto-hide after 3 seconds of inactivity while playing
+  // Control bar auto-hide after 2 seconds of inactivity while playing
   const resetControlsTimeout = useCallback(() => {
     setControlsVisible(true);
     if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
@@ -305,9 +307,28 @@ const AdvancedPlayer = React.forwardRef(({
         setControlsVisible(false);
         setShowSettingsMenu(false);
         setShowServerMenu(false);
-      }, 3000);
+      }, 2000);
     }
   }, [isPlaying, externalControlsVisible]);
+
+  // Handle mouse move on player container: ignores jitter right after click-to-hide
+  const handleContainerMouseMove = useCallback((e) => {
+    // If user recently clicked to toggle controls (within 800ms), ignore click release motion
+    if (Date.now() - lastManualToggleRef.current < 800) {
+      return;
+    }
+
+    const dx = Math.abs(e.clientX - lastMousePosRef.current.x);
+    const dy = Math.abs(e.clientY - lastMousePosRef.current.y);
+
+    // Filter out micro-movements/jitter under 4px
+    if (dx < 4 && dy < 4) {
+      return;
+    }
+
+    lastMousePosRef.current = { x: e.clientX, y: e.clientY };
+    resetControlsTimeout();
+  }, [resetControlsTimeout]);
 
   useEffect(() => {
     if (isPlaying && externalControlsVisible) {
@@ -543,6 +564,7 @@ const AdvancedPlayer = React.forwardRef(({
       // Single tap / click: toggle controls smoothly
       lastTapRef.current = { time: now, x: clientX };
       tapTimeoutRef.current = setTimeout(() => {
+        lastManualToggleRef.current = Date.now();
         setControlsVisible((prev) => {
           const next = !prev;
           if (next) {
@@ -555,7 +577,7 @@ const AdvancedPlayer = React.forwardRef(({
           return next;
         });
         tapTimeoutRef.current = null;
-      }, 180);
+      }, 160);
     }
   };
 
@@ -668,7 +690,7 @@ const AdvancedPlayer = React.forwardRef(({
     <div
       ref={containerRef}
       className={`advanced-player-container ${effectiveControlsVisible ? 'controls-active' : 'controls-hidden'} ${isFullscreen ? 'fullscreen' : ''}`}
-      onMouseMove={resetControlsTimeout}
+      onMouseMove={handleContainerMouseMove}
     >
       {/* Video Engine: Native Video Player for MP4 / HLS */}
       {isDirectVideo ? (
@@ -728,14 +750,9 @@ const AdvancedPlayer = React.forwardRef(({
 
       {/* Central Play/Pause Action Button Overlay (Mobile & Desktop) */}
       {isDirectVideo && hasStarted && (
-        <div
-          className={`player-center-play-overlay ${effectiveControlsVisible || !isPlaying ? 'visible' : 'hidden'}`}
-          onClick={(e) => {
-            e.stopPropagation();
-            togglePlay();
-          }}
-        >
+        <div className={`player-center-play-overlay ${effectiveControlsVisible || !isPlaying ? 'visible' : 'hidden'}`}>
           <button
+            type="button"
             className="player-center-action-btn"
             onClick={(e) => {
               e.stopPropagation();

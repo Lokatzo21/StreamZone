@@ -254,27 +254,6 @@ const Watch = () => {
         </div>
 
         <div className="watch-top-tools">
-          {/* Theater / Lights Out Mode Toggle */}
-          <button
-            className={`theater-mode-btn ${theaterMode ? 'active' : ''}`}
-            onClick={() => setTheaterMode(t => !t)}
-            title={theaterMode ? 'Encender luces' : 'Modo Cine / Apagar luces'}
-            aria-label="Modo Cine"
-          >
-            {theaterMode ? <Sun size={17} /> : <Moon size={17} />}
-            <span className="tool-btn-text">{theaterMode ? 'Luces ON' : 'Modo Cine'}</span>
-          </button>
-
-          {/* Keyboard Shortcuts Help */}
-          <button
-            className="shortcuts-help-btn"
-            onClick={() => setShowShortcutsHelp(true)}
-            title="Atajos de teclado en PC (?)"
-            aria-label="Atajos de teclado"
-          >
-            <Keyboard size={17} />
-          </button>
-
           {/* Toggle Sidebar (Only if not a single movie) */}
           {(!isMovie || episodes.length > 1) && (
             <button
